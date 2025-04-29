@@ -1,8 +1,7 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework import viewsets
+from .models import Question
+from .serializers import QuestionSerializer
 
-class HelloView(APIView):
-    def get(self, request):
-        return Response({"message": "Hola desde Django"})
-
+class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
