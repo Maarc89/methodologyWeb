@@ -1,17 +1,12 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import React from 'react';
+import AssessmentForm from './components/AssessmentForm';
+import './App.css';
 
 function App() {
-    const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        axios.get('http://localhost:8000/hello/')
-            .then(res => setMessage(res.data.message));
-    }, []);
-
     return (
-        <div>
-            <h1>{message}</h1>
+        <div className="App">
+            <h1>Formulario de Evaluación de Ciberseguridad</h1>
+            <AssessmentForm />
         </div>
     );
 }
