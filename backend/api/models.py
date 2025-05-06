@@ -1,23 +1,16 @@
 from django.db import models
 
+class Assessment(models.Model):
+    title = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Question(models.Model):
-    question_text = models.CharField(max_length=255)
-
-
-class Response(models.Model):
-    QUESTION_CHOICES = [
-        ('SI', 'Sí'),
+    assessment = models.ForeignKey(Assessment, related_name='questions', on_delete=models.CASCADE)
+    text = models.TextField()
+    is_answered = models.BooleanField(default=False)
+    answer = models.CharField(max_length=10, choices=[
+        ('YES', 'Yes'),
         ('NO', 'No'),
-        ('NO_SE', 'No sé'),
-    ]
-
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    answer = models.CharField(max_length=5, choices=QUESTION_CHOICES)
-    assessment = models.ForeignKey('CybersecurityAssessment', on_delete=models.CASCADE)
-
-
-class CybersecurityAssessment(models.Model):
-    site_name = models.CharField(max_length=255)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)  # Si usas autenticación
-    score = models.DecimalField(max_digits=5, decimal_places=2)  # Puntuación del assessment
+        ('NA', 'N/A'),
+        ('ALT', 'Alternate')
+    ], blank=True, null=True)

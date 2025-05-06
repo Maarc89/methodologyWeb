@@ -1,14 +1,16 @@
-import React from 'react';
-import AssessmentForm from './components/AssessmentForm';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import AssessmentDetail from './pages/AssessmentDetail'; // la crearemos luego
 
 function App() {
-    return (
-        <div className="App">
-            <h1>Formulario de Evaluación de Ciberseguridad</h1>
-            <AssessmentForm />
-        </div>
-    );
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/assessment/:id" element={<AssessmentDetail />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;
