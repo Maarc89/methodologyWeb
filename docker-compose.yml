@@ -6,7 +6,7 @@ services:
     container_name: django_app
     command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - ./backend:/app/backend  # Ajustado según tu estructura
+      - ./backend:/app/backend
       - static_volume:/app/staticfiles
     working_dir: /app/backend
     ports:
