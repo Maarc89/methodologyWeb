@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 from decouple import config
 
+DJANGO_ENV = os.environ.get('DJANGO_ENV', 'development')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG')
+# Activar DEBUG solo en desarrollo
+DEBUG = DJANGO_ENV == 'development'
 
 ALLOWED_HOSTS = [config('ALLOWED_HOSTS')] if config('ALLOWED_HOSTS') else []
 
