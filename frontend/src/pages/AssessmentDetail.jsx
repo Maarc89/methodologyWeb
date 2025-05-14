@@ -10,7 +10,7 @@ const AssessmentDetail = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        fetch(`http://localhost:8000/api/assessments/${id}/`, {
+        fetch(`http://localhost:8001/api/assessments/${id}/`, {
             headers: {
                 'Authorization': `Token ${token}`,
             }

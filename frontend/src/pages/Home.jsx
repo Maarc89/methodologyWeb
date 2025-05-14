@@ -6,9 +6,9 @@ const Home = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
 
-        fetch('http://localhost:8000/api/assessments/', {
+        fetch('http://localhost:8001/api/assessments/', {
             headers: {
-                'Authorization': `Token ${token}`, // ✅ token como cabecera
+                'Authorization': `Token ${token}`,
             },
         })
             .then(response => {
@@ -20,13 +20,13 @@ const Home = () => {
             .then(data => setAssessments(data))
             .catch(error => {
                 console.error('Error:', error);
-                setAssessments([]); // Evita el error de .map si no es array
+                setAssessments([]);
             });
     }, []);
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Assessments</h1>
+            <h1 className="text-2xl font-bold mb-4">Assessment</h1>
             <ul className="space-y-2">
                 {assessments.map(assessment => (
                     <li key={assessment.id} className="p-4 border rounded shadow-sm hover:bg-gray-100">

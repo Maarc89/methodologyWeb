@@ -7,7 +7,7 @@ const Register = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch('http://localhost:8000/api/auth/register/', {
+        fetch('http://localhost:8001/api/auth/register/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(credentials),
