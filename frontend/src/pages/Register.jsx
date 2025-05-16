@@ -1,27 +1,28 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// Register.jsx
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 
-const Register = () => {
-    const [credentials, setCredentials] = useState({ username: '', email: '', password: '' });
+const Register = ({onRegisterSuccess}) => {
+    const [credentials, setCredentials] = useState({username: '', email: '', password: ''});
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
         fetch('http://localhost:8001/api/auth/register/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(credentials),
         })
             .then(res => res.json())
             .then(data => {
                 if (data.token) {
-                    localStorage.setItem('token', data.token);
+                    onRegisterSuccess(data.token); // <-- Aquí llamas a la prop
                     navigate('/');
                 } else {
                     alert('Error en el registro');
                 }
             })
-            .catch(err => console.error('Error:', err));
+            .catch(() => alert('Error en la petición de registro'));
     };
 
     return (
@@ -33,21 +34,21 @@ const Register = () => {
                     placeholder="Nombre de usuario"
                     className="border p-2 w-full"
                     value={credentials.username}
-                    onChange={e => setCredentials({ ...credentials, username: e.target.value })}
+                    onChange={e => setCredentials({...credentials, username: e.target.value})}
                 />
                 <input
                     type="email"
                     placeholder="Correo electrónico"
                     className="border p-2 w-full"
                     value={credentials.email}
-                    onChange={e => setCredentials({ ...credentials, email: e.target.value })}
+                    onChange={e => setCredentials({...credentials, email: e.target.value})}
                 />
                 <input
                     type="password"
                     placeholder="Contraseña"
                     className="border p-2 w-full"
                     value={credentials.password}
-                    onChange={e => setCredentials({ ...credentials, password: e.target.value })}
+                    onChange={e => setCredentials({...credentials, password: e.target.value})}
                 />
                 <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Registrar</button>
             </form>

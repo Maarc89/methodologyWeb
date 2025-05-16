@@ -1,8 +1,8 @@
-// pages/Login.jsx
+// Login.jsx
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 
-const Login = () => {
+const Login = ({onLoginSuccess}) => {
     const [credentials, setCredentials] = useState({username: '', password: ''});
     const navigate = useNavigate();
 
@@ -16,12 +16,13 @@ const Login = () => {
             .then(res => res.json())
             .then(data => {
                 if (data.token) {
-                    localStorage.setItem('token', data.token);
+                    onLoginSuccess(data.token);  // <-- Aquí llamas a la prop
                     navigate('/');
                 } else {
                     alert('Login fallido');
                 }
-            });
+            })
+            .catch(() => alert('Error en la petición de login'));
     };
 
     return (
