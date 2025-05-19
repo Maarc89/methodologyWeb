@@ -13,6 +13,7 @@ from rest_framework import generics
 from .models import UserAnswer
 from .serializers import UserAnswerSerializer
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 
 class AssessmentTemplateListView(generics.ListAPIView):
@@ -45,6 +46,21 @@ class StartUserAssessmentView(APIView):
             user=request.user,
             assessment_template=template
         )
+        if created:
+            for question in template.questions.all():
+                UserAnswer.objects.create(
+                    user_assessment=user_assessment,
+                    question_template=question
+                )
+        serializer = UserAssessmentSerializer(user_assessment)
+        return Response(serializer.data)
+
+
+class UserAssessmentDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        user_assessment = get_object_or_404(UserAssessment, pk=pk, user=request.user)
         serializer = UserAssessmentSerializer(user_assessment)
         return Response(serializer.data)
 

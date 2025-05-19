@@ -13,12 +13,20 @@ const UserAssessmentDetail = () => {
         fetch(`${API_BASE}/user-assessments/${id}/`, {
             headers: {'Authorization': `Token ${token}`}
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Error al cargar assessment');
+                return res.json();
+            })
             .then(data => {
                 setUserAssessment(data);
                 setLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
             });
     }, [id, token]);
+
 
     const handleAnswerChange = async (answerId, newAnswer) => {
         const res = await fetch(`${API_BASE}/user-assessments/answers/${answerId}/`, {

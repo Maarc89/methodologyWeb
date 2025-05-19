@@ -9,13 +9,23 @@ const Home = () => {
     const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
-        fetch(`${API_BASE}/assessments/`)
-            .then(res => res.json())
-            .then(data => {
+        const fetchAssessments = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/assessments/`);
+                if (!res.ok) throw new Error('Error al cargar assessments');
+                const data = await res.json();
                 setAssessments(data);
+            } catch (error) {
+                console.error(error);
+                alert('No se pudieron cargar los assessments');
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
+
+        fetchAssessments();
     }, []);
+
 
     const handleStart = async (id) => {
         const token = localStorage.getItem('token');
@@ -42,6 +52,9 @@ const Home = () => {
     };
 
     if (loading) return <div>Cargando assessments...</div>;
+    if (!loading && assessments.length === 0) {
+        return <div>No hay assessments disponibles en este momento.</div>;
+    }
 
     return (
         <div>
