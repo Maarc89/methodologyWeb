@@ -8,6 +8,9 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+
+
 
 class AssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = AssessmentSerializer
@@ -41,3 +44,14 @@ def register(request):
 
         return Response({'token': token.key}, status=status.HTTP_201_CREATED)
     return None
+
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            'username': user.username,
+            'email': user.email,
+        })

@@ -1,57 +1,43 @@
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+// src/App.jsx
 import {useState} from 'react';
+import {Routes, Route} from 'react-router-dom';
 
-import Home from './pages/Home';
-import AssessmentDetail from './pages/AssessmentDetail'; // la crearemos luego
+import Layout from './components/Layout';
 import Login from './pages/Login';
-import ProtectedRoute from './pages/AssessmentDetail';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import PrivateRoute from './routes/PrivateRoute';
 
-function App() {
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+const App = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+
+    const handleLoginSuccess = (token) => {
+        localStorage.setItem('token', token);
+        setIsAuthenticated(true);
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        setToken(null);
+        setIsAuthenticated(false);
     };
 
     return (
-        <Router>
-            <Routes>
+        <Routes>
+            <Route path="/" element={<Layout isAuthenticated={isAuthenticated}/>}>
+                <Route index element={<div>Bienvenido a tu página principal</div>}/>
+                <Route path="login" element={<Login onLoginSuccess={handleLoginSuccess}/>}/>
+                <Route path="register" element={<Register onRegisterSuccess={handleLoginSuccess}/>}/>
                 <Route
-                    path="/"
+                    path="profile"
                     element={
-                        <Home
-                            token={token}
-                            setToken={setToken}
-                            onLogout={handleLogout}
-                        />
+                        <PrivateRoute>
+                            <Profile onLogout={handleLogout}/>
+                        </PrivateRoute>
                     }
                 />
-                <Route
-                    path="/login"
-                    element={<Login onLoginSuccess={setToken}/>}
-                />
-                <Route
-                    path="/register"
-                    element={<Register onRegisterSuccess={setToken}/>}
-                />
-                <Route
-                    path="/profile"
-                    element={<Profile onLogout={handleLogout}/>}
-                />
-                <Route
-                    path="/assessment/:id"
-                    element={
-                        <ProtectedRoute>
-                            <AssessmentDetail/>
-                        </ProtectedRoute>
-                    }
-                />
-            </Routes>
-        </Router>
+            </Route>
+        </Routes>
     );
-}
+};
 
 export default App;

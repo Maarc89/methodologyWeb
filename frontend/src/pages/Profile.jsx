@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 
 const Profile = ({onLogout}) => {
     const [userInfo, setUserInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -15,23 +17,28 @@ const Profile = ({onLogout}) => {
 
         fetch('http://localhost:8001/api/auth/user/', {
             headers: {
-                'Authorization': `Token ${token}`,
+                Authorization: `Token ${token}`,
             },
         })
-            .then(res => {
+            .then((res) => {
                 if (!res.ok) throw new Error(`Error ${res.status}`);
                 return res.json();
             })
-            .then(data => {
+            .then((data) => {
                 setUserInfo(data);
                 setLoading(false);
             })
-            .catch(err => {
+            .catch((err) => {
                 console.error(err);
                 setError('No se pudo cargar la información del usuario.');
                 setLoading(false);
             });
     }, []);
+
+    const handleLogoutClick = () => {
+        onLogout(); // borra token y actualiza estado
+        navigate('/'); // redirige al home
+    };
 
     if (loading) return <p className="p-4">Cargando...</p>;
     if (error) return <p className="p-4 text-red-600">{error}</p>;
@@ -42,7 +49,7 @@ const Profile = ({onLogout}) => {
             <p><strong>Username:</strong> {userInfo.username}</p>
             <p><strong>Email:</strong> {userInfo.email}</p>
             <button
-                onClick={onLogout}
+                onClick={handleLogoutClick}
                 className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
             >
                 Logout
