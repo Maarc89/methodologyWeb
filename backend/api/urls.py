@@ -1,12 +1,19 @@
 from django.urls import path
-from .views import QuestionViewSet, AssessmentViewSet, register
+from .views import (
+    register,
+    AssessmentTemplateListView,
+    UserAssessmentListView,
+    StartUserAssessmentView,
+    UserAnswerUpdateView
+)
 from rest_framework.authtoken.views import obtain_auth_token
 from .views import UserDetailView
 
 urlpatterns = [
-    path('assessments/', AssessmentViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('assessments/<int:pk>/', AssessmentViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'})),
-    path('questions/<int:pk>/', QuestionViewSet.as_view({'patch': 'partial_update'})),
+    path('assessments/', AssessmentTemplateListView.as_view(), name='assessment-template-list'),
+    path('user-assessments/', UserAssessmentListView.as_view(), name='user-assessment-list'),
+    path('user-assessments/start/', StartUserAssessmentView.as_view(), name='start-user-assessment'),
+    path('user-assessments/answers/<int:pk>/', UserAnswerUpdateView.as_view(), name='user-answer-update'),
     path('auth/login/', obtain_auth_token),
     path('auth/register/', register, name='register'),
     path('auth/user/', UserDetailView.as_view(), name='user-detail'),

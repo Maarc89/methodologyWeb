@@ -1,14 +1,32 @@
+# serializers.py
 from rest_framework import serializers
-from .models import Assessment, Question
+from .models import AssessmentTemplate, QuestionTemplate, UserAssessment, UserAnswer
 
-class QuestionSerializer(serializers.ModelSerializer):
+class QuestionTemplateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Question
-        fields = '__all__'
+        model = QuestionTemplate
+        fields = ['id', 'text']
 
-class AssessmentSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
+class AssessmentTemplateSerializer(serializers.ModelSerializer):
+    questions = QuestionTemplateSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Assessment
-        fields = '__all__'
+        model = AssessmentTemplate
+        fields = ['id', 'title', 'created_at', 'questions']
+
+
+class UserAnswerSerializer(serializers.ModelSerializer):
+    question_template = QuestionTemplateSerializer(read_only=True)
+
+    class Meta:
+        model = UserAnswer
+        fields = ['id', 'question_template', 'answer']
+
+
+class UserAssessmentSerializer(serializers.ModelSerializer):
+    assessment_template = AssessmentTemplateSerializer(read_only=True)
+    answers = UserAnswerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = UserAssessment
+        fields = ['id', 'assessment_template', 'started_at', 'completed', 'answers']

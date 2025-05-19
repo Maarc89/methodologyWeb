@@ -1,31 +1,62 @@
-from rest_framework import viewsets
-from .models import Assessment, Question
-from .serializers import AssessmentSerializer, QuestionSerializer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import UserAssessment
+from .serializers import UserAssessmentSerializer
+from .models import AssessmentTemplate
+from .serializers import AssessmentTemplateSerializer
+from rest_framework import generics
+from .models import UserAnswer
+from .serializers import UserAnswerSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
+class AssessmentTemplateListView(generics.ListAPIView):
+    queryset = AssessmentTemplate.objects.all()
+    serializer_class = AssessmentTemplateSerializer
+    permission_classes = [AllowAny]
 
-class AssessmentViewSet(viewsets.ModelViewSet):
-    serializer_class = AssessmentSerializer
+
+class UserAssessmentListView(generics.ListAPIView):
+    serializer_class = UserAssessmentSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Assessment.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        return UserAssessment.objects.filter(user=self.request.user)
 
 
-class QuestionViewSet(viewsets.ModelViewSet):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
+class StartUserAssessmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        assessment_template_id = request.data.get('assessment_template_id')
+        if not assessment_template_id:
+            return Response({'detail': 'assessment_template_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            template = AssessmentTemplate.objects.get(id=assessment_template_id)
+        except AssessmentTemplate.DoesNotExist:
+            return Response({'detail': 'Assessment template not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        user_assessment, created = UserAssessment.objects.get_or_create(
+            user=request.user,
+            assessment_template=template
+        )
+        serializer = UserAssessmentSerializer(user_assessment)
+        return Response(serializer.data)
+
+
+class UserAnswerUpdateView(generics.UpdateAPIView):
+    queryset = UserAnswer.objects.all()
+    serializer_class = UserAnswerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Para asegurarnos que el usuario solo puede modificar sus propias respuestas
+        return UserAnswer.objects.filter(user_assessment__user=self.request.user)
 
 
 @api_view(['POST'])

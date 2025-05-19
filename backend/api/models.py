@@ -1,16 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-class Assessment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assessments')
+
+class AssessmentTemplate(models.Model):
     title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class Question(models.Model):
-    assessment = models.ForeignKey(Assessment, related_name='questions', on_delete=models.CASCADE)
+class QuestionTemplate(models.Model):
+    assessment_template = models.ForeignKey(AssessmentTemplate, related_name='questions', on_delete=models.CASCADE)
     text = models.TextField()
-    is_answered = models.BooleanField(default=False)
+
+
+class UserAssessment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_assessments')
+    assessment_template = models.ForeignKey(AssessmentTemplate, on_delete=models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed = models.BooleanField(default=False)
+
+
+class UserAnswer(models.Model):
+    user_assessment = models.ForeignKey(UserAssessment, related_name='answers', on_delete=models.CASCADE)
+    question_template = models.ForeignKey(QuestionTemplate, on_delete=models.CASCADE)
     answer = models.CharField(max_length=10, choices=[
         ('YES', 'Yes'),
         ('NO', 'No'),

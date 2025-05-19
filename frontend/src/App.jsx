@@ -7,6 +7,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import PrivateRoute from './routes/PrivateRoute';
+import Home from './pages/Home';
+import MyAssessments from './pages/MyAssessments';
+import UserAssessmentDetail from './pages/UserAssessmentDetail';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -24,7 +27,7 @@ const App = () => {
     return (
         <Routes>
             <Route path="/" element={<Layout isAuthenticated={isAuthenticated}/>}>
-                <Route index element={<div>Bienvenido a tu página principal</div>}/>
+                <Route index element={<Home/>}/>
                 <Route path="login" element={<Login onLoginSuccess={handleLoginSuccess}/>}/>
                 <Route path="register" element={<Register onRegisterSuccess={handleLoginSuccess}/>}/>
                 <Route
@@ -32,6 +35,22 @@ const App = () => {
                     element={
                         <PrivateRoute>
                             <Profile onLogout={handleLogout}/>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="my-assessments"
+                    element={
+                        <PrivateRoute>
+                            <MyAssessments/>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="user-assessments/:id"
+                    element={
+                        <PrivateRoute>
+                            <UserAssessmentDetail/>
                         </PrivateRoute>
                     }
                 />
