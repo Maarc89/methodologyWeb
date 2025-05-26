@@ -5,7 +5,9 @@ from .views import (
     UserAssessmentListView,
     StartUserAssessmentView,
     UserAnswerUpdateView,
-    UserAssessmentDetailView
+    UserAssessmentDetailView,
+    user_me,
+    create_assessment
 )
 from rest_framework.authtoken.views import obtain_auth_token
 from .views import UserDetailView
@@ -19,4 +21,6 @@ urlpatterns = [
     path('auth/login/', obtain_auth_token),
     path('auth/register/', register, name='register'),
     path('auth/user/', UserDetailView.as_view(), name='user-detail'),
+    path('users/me/', user_me, name='user-me'),
+    path('assessments/create/', create_assessment, name='create-assessment'),
 ]

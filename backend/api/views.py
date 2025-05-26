@@ -7,13 +7,41 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import UserAssessment
 from .serializers import UserAssessmentSerializer
-from .models import AssessmentTemplate
-from .serializers import AssessmentTemplateSerializer
 from rest_framework import generics
 from .models import UserAnswer
 from .serializers import UserAnswerSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAdminUser
+from rest_framework.viewsets import ModelViewSet
+from .models import AssessmentTemplate
+from .serializers import AssessmentTemplateSerializer
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_assessment(request):
+    serializer = AssessmentTemplateSerializer(data=request.data)
+    if serializer.is_valid():
+        assessment = serializer.save()
+        return Response(AssessmentTemplateSerializer(assessment).data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_me(request):
+    user = request.user
+    return Response({
+        'is_staff': user.is_staff
+    })
+
+
+class AssessmentTemplateViewSet(ModelViewSet):
+    queryset = AssessmentTemplate.objects.all()
+    serializer_class = AssessmentTemplateSerializer
+    permission_classes = [IsAdminUser]
 
 
 class AssessmentTemplateListView(generics.ListAPIView):

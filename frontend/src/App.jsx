@@ -10,6 +10,7 @@ import PrivateRoute from './routes/PrivateRoute';
 import Home from './pages/Home';
 import MyAssessments from './pages/MyAssessments';
 import UserAssessmentDetail from './pages/UserAssessmentDetail';
+import CreateAssessment from './pages/CreateAssessment';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -30,6 +31,7 @@ const App = () => {
                 <Route index element={<Home/>}/>
                 <Route path="login" element={<Login onLoginSuccess={handleLoginSuccess}/>}/>
                 <Route path="register" element={<Register onRegisterSuccess={handleLoginSuccess}/>}/>
+                <Route path="/create-assessment" element={<CreateAssessment/>}/>
                 <Route
                     path="profile"
                     element={
