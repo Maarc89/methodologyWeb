@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import MyAssessments from './pages/MyAssessments';
 import UserAssessmentDetail from './pages/UserAssessmentDetail';
 import CreateAssessment from './pages/CreateAssessment';
+import Settings from './pages/Settings';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -53,6 +54,14 @@ const App = () => {
                     element={
                         <PrivateRoute>
                             <UserAssessmentDetail/>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/settings"
+                    element={
+                        <PrivateRoute>
+                            <Settings/>
                         </PrivateRoute>
                     }
                 />

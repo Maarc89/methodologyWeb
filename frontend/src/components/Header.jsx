@@ -24,7 +24,7 @@ const Header = ({isAuthenticated}) => {
 
     return (
         <header className="bg-white shadow p-4 flex justify-between items-center">
-            <Link to="/" className="text-xl font-bold">MiLogo</Link>
+            <Link to="/" className="text-xl font-bold">Logo</Link>
             <nav className="space-x-4 relative" ref={dropdownRef}>
                 {isAuthenticated ? (
                     <>

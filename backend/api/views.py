@@ -16,6 +16,30 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.viewsets import ModelViewSet
 from .models import AssessmentTemplate
 from .serializers import AssessmentTemplateSerializer
+from django.contrib.auth import update_session_auth_hash
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user_settings(request):
+    user = request.user
+    data = request.data
+
+    email = data.get('email')
+    password = data.get('password')
+    new_password = data.get('new_password')
+
+    if email:
+        user.email = email
+
+    if password and new_password:
+        if not user.check_password(password):
+            return Response({'detail': 'Incorrect current password'}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        update_session_auth_hash(request, user)
+
+    user.save()
+    return Response({'detail': 'User updated successfully'})
 
 
 @api_view(['POST'])

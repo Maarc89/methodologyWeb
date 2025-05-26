@@ -83,7 +83,6 @@ const Home = () => {
 
         if (res.ok) {
             alert('Assessment borrado correctamente');
-            // Actualizar la lista local sin el assessment borrado:
             setAssessments((prev) => prev.filter((a) => a.id !== id));
         } else {
             alert('Error al borrar el assessment');
