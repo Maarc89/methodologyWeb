@@ -59,18 +59,24 @@ const UserAssessmentDetail = () => {
             <ul>
                 {userAssessment.answers.map(answer => (
                     <li key={answer.id} className="mb-4 p-4 border rounded shadow">
-                        <p className="mb-2">{answer.question_template.text}</p>
-                        <select
-                            value={answer.answer || ''}
-                            onChange={(e) => handleAnswerChange(answer.id, e.target.value)}
-                            className="border p-2 rounded"
-                        >
-                            <option value="">-- Elige una respuesta --</option>
-                            <option value="YES">Sí</option>
-                            <option value="NO">No</option>
-                            <option value="NA">No Aplica</option>
-                            <option value="ALT">Alternativa</option>
-                        </select>
+                        <p className="mb-2 font-medium">{answer.question_template.text}</p>
+                        <div className="flex flex-wrap gap-2">
+                            {['YES', 'NO', 'NA', 'ALT'].map(option => (
+                                <button
+                                    key={option}
+                                    onClick={() => handleAnswerChange(answer.id, option)}
+                                    className={`py-2 px-4 rounded-lg transition-all duration-200
+                        ${answer.answer === option
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
+                                >
+                                    {option === 'YES' && 'Sí'}
+                                    {option === 'NO' && 'No'}
+                                    {option === 'NA' && 'No Aplica'}
+                                    {option === 'ALT' && 'Alternativa'}
+                                </button>
+                            ))}
+                        </div>
                     </li>
                 ))}
             </ul>
