@@ -1,6 +1,8 @@
 from django.urls import path
+
 from .views import (
     register,
+    AssessmentTemplateViewSet,
     AssessmentTemplateListView,
     UserAssessmentListView,
     StartUserAssessmentView,

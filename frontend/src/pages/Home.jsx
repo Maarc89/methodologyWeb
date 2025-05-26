@@ -67,6 +67,30 @@ const Home = () => {
         }
     };
 
+    const handleEdit = (id) => {
+        navigate(`/edit-assessment/${id}`);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('¿Estás seguro de que quieres borrar este assessment?')) return;
+
+        const res = await fetch(`${API_BASE}/assessments/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Token ${token}`,
+            },
+        });
+
+        if (res.ok) {
+            alert('Assessment borrado correctamente');
+            // Actualizar la lista local sin el assessment borrado:
+            setAssessments((prev) => prev.filter((a) => a.id !== id));
+        } else {
+            alert('Error al borrar el assessment');
+        }
+    };
+
+
     const handleAssessmentImported = (newAssessment) => {
         setAssessments((prev) => [...prev, newAssessment]);
     };
@@ -103,21 +127,41 @@ const Home = () => {
             </div>
             <ul>
                 {assessments.map((a) => (
-                    <li
-                        key={a.id}
-                        className="mb-3 p-4 border rounded shadow"
-                    >
-                        <h2 className="font-semibold text-xl">{a.title}</h2>
-                        <p className="text-sm text-gray-600 mb-2">{a.description}</p>
-                        <button
-                            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                            onClick={() => handleStart(a.id)}
-                        >
-                            Empezar
-                        </button>
+                    <li key={a.id} className="mb-3 p-4 border rounded shadow flex justify-between items-center">
+                        <div>
+                            <h2 className="font-semibold text-xl">{a.title}</h2>
+                            <p className="text-sm text-gray-600 mb-2">{a.description}</p>
+                        </div>
+
+                        <div className="flex space-x-2">
+                            <button
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                onClick={() => handleStart(a.id)}
+                            >
+                                Empezar
+                            </button>
+
+                            {isAdmin && (
+                                <>
+                                    <button
+                                        className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                                        onClick={() => handleEdit(a.id)}
+                                    >
+                                        Editar
+                                    </button>
+                                    <button
+                                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                                        onClick={() => handleDelete(a.id)}
+                                    >
+                                        Borrar
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </li>
                 ))}
             </ul>
+
         </div>
     );
 };

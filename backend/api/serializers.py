@@ -23,6 +23,18 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
             QuestionTemplate.objects.create(assessment_template=assessment, **question_data)
         return assessment
 
+    def update(self, instance, validated_data):
+        questions_data = validated_data.pop('questions', None)
+        instance.title = validated_data.get('title', instance.title)
+        instance.save()
+
+        if questions_data is not None:
+            instance.questions.all().delete()
+            for question_data in questions_data:
+                QuestionTemplate.objects.create(assessment_template=instance, **question_data)
+
+        return instance
+
 
 class UserAnswerSerializer(serializers.ModelSerializer):
     question_template = QuestionTemplateSerializer(read_only=True)
