@@ -7,7 +7,7 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [names, setNames] = useState({});
-    const [editingName, setEditingName] = useState({}); // control para mostrar input
+    const [editingName, setEditingName] = useState({});
     const navigate = useNavigate();
     const API_BASE = 'http://localhost:8001/api';
     const token = localStorage.getItem('token');
@@ -129,14 +129,14 @@ const Home = () => {
         return <div className="text-center mt-8">No hay assessments disponibles en este momento.</div>;
 
     return (
-        <div className="max-w-4xl mx-auto mt-10">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Assessments disponibles</h1>
+        <div className="container-main">
+            <div className="header flex justify-between items-center mb-6">
+                <h1 className="title">Assessments disponibles</h1>
                 {isAdmin && (
-                    <div className="flex items-center space-x-2">
+                    <div className="admin-actions flex items-center space-x-2">
                         <button
                             onClick={() => navigate('/create-assessment')}
-                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                            className="btn-create"
                         >
                             Crear Assessment
                         </button>
@@ -152,39 +152,41 @@ const Home = () => {
                 {assessments.map((a) => (
                     <li
                         key={a.id}
-                        className="mb-3 p-4 border rounded shadow flex flex-col space-y-2"
+                        className="assessment-item mb-3 p-4 border rounded shadow flex flex-col space-y-2"
                     >
                         <div>
-                            <h2 className="font-semibold text-xl">{a.title}</h2>
-                            <p className="text-sm text-gray-600 mb-2">{a.description}</p>
+                            <h2 className="assessment-title font-semibold text-xl">{a.title}</h2>
+                            <p className="assessment-description text-sm text-gray-600 mb-2">
+                                {a.description}
+                            </p>
                         </div>
 
                         {!editingName[a.id] ? (
                             isAdmin ? (
-                                <div className="flex space-x-2 mt-2">
+                                <div className="container-buttons">
                                     <button
-                                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        className="btn-primary"
                                         onClick={() => handleStartClick(a.id)}
                                     >
                                         Empezar
                                     </button>
                                     <button
-                                        className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                                        className="btn-edit"
                                         onClick={() => handleEdit(a.id)}
                                     >
                                         Editar
                                     </button>
                                     <button
-                                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                                        className="btn-delete"
                                         onClick={() => handleDelete(a.id)}
                                     >
                                         Borrar
                                     </button>
                                 </div>
                             ) : (
-                                <div className="flex space-x-2 mt-2">
+                                <div className="container-buttons">
                                     <button
-                                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mt-2"
+                                        className="btn-primary mt-2"
                                         onClick={() => handleStartClick(a.id)}
                                     >
                                         Empezar
@@ -198,18 +200,18 @@ const Home = () => {
                                     placeholder="Nombre para tu assessment"
                                     value={names[a.id] || ''}
                                     onChange={(e) => handleNameChange(a.id, e.target.value)}
-                                    className="border p-2 rounded w-full"
+                                    className="input-name"
                                 />
-                                <div className="flex space-x-2 mt-2">
+                                <div className="container-buttons">
                                     <button
-                                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300"
+                                        className="btn-confirm"
                                         onClick={() => handleConfirmStart(a.id)}
                                         disabled={!names[a.id]?.trim()}
                                     >
                                         Confirmar
                                     </button>
                                     <button
-                                        className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                                        className="btn-cancel"
                                         onClick={() =>
                                             setEditingName((prev) => {
                                                 const copy = {...prev};

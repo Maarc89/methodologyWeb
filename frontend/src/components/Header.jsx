@@ -23,25 +23,25 @@ const Header = ({isAuthenticated}) => {
     };
 
     return (
-        <header className="bg-white shadow p-4 flex justify-between items-center">
-            <Link to="/" className="text-xl font-bold">Logo</Link>
-            <nav className="space-x-4 relative" ref={dropdownRef}>
+        <header className="header-container">
+            <Link to="/" className="logo-text">Logo</Link>
+            <nav className="nav-container" ref={dropdownRef}>
                 {isAuthenticated ? (
                     <>
                         <button
                             onClick={() => setOpen(!open)}
-                            className="text-blue-600 hover:underline focus:outline-none"
+                            className="btn-profile"
                         >
                             Perfil ▼
                         </button>
                         {open && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                            <div className="dropdown-menu">
                                 <button
                                     onClick={() => {
                                         setOpen(false);
                                         navigate('/settings');
                                     }}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                    className="dropdown-item"
                                 >
                                     Configuración
                                 </button>
@@ -50,13 +50,13 @@ const Header = ({isAuthenticated}) => {
                                         setOpen(false);
                                         navigate('/my-assessments');
                                     }}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                    className="dropdown-item"
                                 >
                                     My Assessments
                                 </button>
                                 <button
                                     onClick={handleLogout}
-                                    className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                                    className="dropdown-item logout"
                                 >
                                     Logout
                                 </button>
@@ -65,8 +65,8 @@ const Header = ({isAuthenticated}) => {
                     </>
                 ) : (
                     <>
-                        <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
-                        <Link to="/register" className="text-blue-600 hover:underline">Register</Link>
+                        <Link to="/login" className="btn-link">Login</Link>
+                        <Link to="/register" className="btn-link">Register</Link>
                     </>
                 )}
             </nav>

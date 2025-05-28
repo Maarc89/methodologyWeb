@@ -5,3 +5,99 @@
 body {
   @apply bg-gray-50 text-gray-900;
 }
+
+.container-main {
+  @apply max-w-4xl mx-auto mt-10;
+}
+
+.header {
+  /* Puedes dejar vacía o añadir otras reglas si quieres */
+}
+
+.title {
+  @apply text-2xl font-bold;
+}
+
+.admin-actions {
+  /* ya tiene flex y space-x-2 en JSX, pero puedes moverlo aquí si prefieres */
+}
+
+.btn-create {
+  @apply bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700;
+}
+
+.assessment-item {
+  @apply mb-3 p-4 border rounded shadow flex flex-col space-y-2;
+}
+
+.assessment-title {
+  /* Ya aplicaste font-semibold text-xl en JSX, lo puedes mover aquí */
+  @apply font-semibold text-xl;
+}
+
+.assessment-description {
+  @apply text-sm text-gray-600 mb-2;
+}
+
+.container-buttons {
+  @apply flex space-x-2 mt-2;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700;
+}
+
+.btn-edit {
+  @apply px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600;
+}
+
+.btn-delete {
+  @apply px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700;
+}
+
+.btn-confirm {
+  @apply px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300;
+}
+
+.btn-cancel {
+  @apply px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500;
+}
+
+.input-name {
+  @apply border p-2 rounded w-full;
+}
+
+/* Header.jsx */
+
+.header-container {
+  @apply bg-white shadow p-4 flex justify-between items-center;
+}
+
+.logo-text {
+  @apply text-xl font-bold;
+}
+
+.nav-container {
+  @apply space-x-4 relative;
+}
+
+.btn-profile {
+  @apply text-blue-600 hover:underline focus:outline-none;
+}
+
+.dropdown-menu {
+  @apply absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10;
+}
+
+.dropdown-item {
+  @apply block w-full text-left px-4 py-2 hover:bg-gray-100;
+}
+
+.logout {
+  @apply text-red-600;
+}
+
+.btn-link {
+  @apply text-blue-600 hover:underline;
+}
+
