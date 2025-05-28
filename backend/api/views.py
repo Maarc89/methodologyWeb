@@ -1,27 +1,70 @@
-from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import UserAssessment
-from .serializers import UserAssessmentSerializer
-from rest_framework import generics
-from .models import UserAnswer
-from .serializers import UserAnswerSerializer
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAdminUser
-from rest_framework.viewsets import ModelViewSet
-from .models import AssessmentTemplate
-from .serializers import AssessmentTemplateSerializer
 from django.contrib.auth import update_session_auth_hash
+from django.shortcuts import get_object_or_404
+
+from rest_framework import generics, status, viewsets
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import AssessmentTemplate, UserAssessment, UserAnswer
+from .serializers import (
+    AssessmentTemplateSerializer,
+    UserAssessmentSerializer,
+    UserAnswerSerializer,
+)
+
+
+# -----------------------
+# USER REGISTRATION & PROFILE
+# -----------------------
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    """
+    Registro de usuario nuevo. Devuelve token.
+    """
+    username = request.data.get('username')
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    if not username or not email or not password:
+        return Response({'detail': 'Please provide all fields'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(username=username).exists():
+        return Response({'detail': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email=email).exists():
+        return Response({'detail': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create_user(username=username, email=email, password=password)
+    token = Token.objects.create(user=user)
+
+    return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Devuelve información básica del usuario autenticado.
+        """
+        user = request.user
+        return Response({
+            'username': user.username,
+            'email': user.email,
+        })
 
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_user_settings(request):
+    """
+    Actualiza email y/o contraseña del usuario.
+    """
     user = request.user
     data = request.data
 
@@ -42,39 +85,55 @@ def update_user_settings(request):
     return Response({'detail': 'User updated successfully'})
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_assessment(request):
-    serializer = AssessmentTemplateSerializer(data=request.data)
-    if serializer.is_valid():
-        assessment = serializer.save()
-        return Response(AssessmentTemplateSerializer(assessment).data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_me(request):
+    """
+    Retorna datos de usuario para frontend (ejemplo: is_staff).
+    """
     user = request.user
-    return Response({
-        'is_staff': user.is_staff
-    })
+    return Response({'is_staff': user.is_staff})
 
 
-class AssessmentTemplateViewSet(ModelViewSet):
+# -----------------------
+# ASSESSMENTS
+# -----------------------
+
+class AssessmentTemplateViewSet(viewsets.ModelViewSet):
+    """
+    CRUD para templates de assessment solo para admins.
+    """
     queryset = AssessmentTemplate.objects.all()
     serializer_class = AssessmentTemplateSerializer
     permission_classes = [IsAdminUser]
 
 
 class AssessmentTemplateListView(generics.ListAPIView):
+    """
+    Lista pública de templates de assessment (permitido a cualquiera).
+    """
     queryset = AssessmentTemplate.objects.all()
     serializer_class = AssessmentTemplateSerializer
     permission_classes = [AllowAny]
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_assessment(request):
+    """
+    Crear un template de assessment (se puede revisar si solo admins).
+    """
+    serializer = AssessmentTemplateSerializer(data=request.data)
+    if serializer.is_valid():
+        assessment = serializer.save()
+        return Response(AssessmentTemplateSerializer(assessment).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class UserAssessmentListView(generics.ListAPIView):
+    """
+    Lista los assessments iniciados por el usuario autenticado.
+    """
     serializer_class = UserAssessmentSerializer
     permission_classes = [IsAuthenticated]
 
@@ -86,9 +145,13 @@ class StartUserAssessmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        """
+        Inicia un assessment para el usuario.
+        """
         assessment_template_id = request.data.get('assessment_template_id')
         if not assessment_template_id:
             return Response({'detail': 'assessment_template_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             template = AssessmentTemplate.objects.get(id=assessment_template_id)
         except AssessmentTemplate.DoesNotExist:
@@ -98,12 +161,15 @@ class StartUserAssessmentView(APIView):
             user=request.user,
             assessment_template=template
         )
+
         if created:
+            # Crear respuestas vacías para cada pregunta del template
             for question in template.questions.all():
                 UserAnswer.objects.create(
                     user_assessment=user_assessment,
                     question_template=question
                 )
+
         serializer = UserAssessmentSerializer(user_assessment)
         return Response(serializer.data)
 
@@ -112,45 +178,21 @@ class UserAssessmentDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
+        """
+        Detalles de un assessment iniciado por el usuario.
+        """
         user_assessment = get_object_or_404(UserAssessment, pk=pk, user=request.user)
         serializer = UserAssessmentSerializer(user_assessment)
         return Response(serializer.data)
 
 
 class UserAnswerUpdateView(generics.UpdateAPIView):
-    queryset = UserAnswer.objects.all()
+    """
+    Actualizar una respuesta de usuario a una pregunta.
+    """
     serializer_class = UserAnswerSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Para asegurarnos que el usuario solo puede modificar sus propias respuestas
+        # Solo permitir modificar respuestas propias
         return UserAnswer.objects.filter(user_assessment__user=self.request.user)
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def register(request):
-    if request.method == 'POST':
-        username = request.data.get('username')
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        if not username or not email or not password:
-            return Response({'detail': 'Please provide all fields'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = User.objects.create_user(username=username, email=email, password=password)
-        token = Token.objects.create(user=user)
-
-        return Response({'token': token.key}, status=status.HTTP_201_CREATED)
-    return None
-
-
-class UserDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        return Response({
-            'username': user.username,
-            'email': user.email,
-        })

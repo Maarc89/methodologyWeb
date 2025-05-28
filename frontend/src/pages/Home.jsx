@@ -16,7 +16,8 @@ const Home = () => {
                 const res = await fetch(`${API_BASE}/assessments/`);
                 if (!res.ok) throw new Error('Error al cargar assessments');
                 const data = await res.json();
-                setAssessments(data);
+                const assessmentsData = data.results ?? data;  // ← aquí está el fix
+                setAssessments(assessmentsData);
             } catch (error) {
                 console.error(error);
                 alert('No se pudieron cargar los assessments');
