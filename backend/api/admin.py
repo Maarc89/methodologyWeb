@@ -6,10 +6,12 @@ from .models import (
     UserAnswer
 )
 
+
 # Muestra las preguntas al editar un AssessmentTemplate
 class QuestionTemplateInline(admin.TabularInline):
     model = QuestionTemplate
     extra = 0
+
 
 @admin.register(AssessmentTemplate)
 class AssessmentTemplateAdmin(admin.ModelAdmin):
@@ -23,6 +25,7 @@ class AssessmentTemplateAdmin(admin.ModelAdmin):
 class UserAnswerInline(admin.TabularInline):
     model = UserAnswer
     extra = 0
+
 
 @admin.register(UserAssessment)
 class UserAssessmentAdmin(admin.ModelAdmin):

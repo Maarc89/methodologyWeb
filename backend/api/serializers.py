@@ -38,7 +38,7 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """
         Actualizar AssessmentTemplate y preguntas asociadas.
-        Método eficiente para sincronizar preguntas:
+        Méthod eficiente para sincronizar preguntas:
          - Actualiza preguntas existentes
          - Crea nuevas preguntas
          - Elimina preguntas no presentes
@@ -90,7 +90,8 @@ class UserAnswerSerializer(serializers.ModelSerializer):
 class UserAssessmentSerializer(serializers.ModelSerializer):
     assessment_template = AssessmentTemplateSerializer(read_only=True)
     answers = UserAnswerSerializer(many=True, read_only=True)
+    name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = UserAssessment
-        fields = ['id', 'assessment_template', 'started_at', 'completed', 'answers']
+        fields = ['id', 'assessment_template', 'started_at', 'completed', 'answers', 'name']

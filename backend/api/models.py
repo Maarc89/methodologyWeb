@@ -17,6 +17,7 @@ class UserAssessment(models.Model):
     assessment_template = models.ForeignKey(AssessmentTemplate, on_delete=models.CASCADE)
     started_at = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
+    name = models.CharField(max_length=255, blank=True)
 
 
 class UserAnswer(models.Model):

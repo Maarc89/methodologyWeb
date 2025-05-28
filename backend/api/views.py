@@ -146,9 +146,11 @@ class StartUserAssessmentView(APIView):
 
     def post(self, request):
         """
-        Inicia un assessment para el usuario.
+        Inicia un assessment para el usuario, con un nombre opcional.
         """
         assessment_template_id = request.data.get('assessment_template_id')
+        name = request.data.get('name', '')  # Recoger el nombre del formulario, por defecto vacío
+
         if not assessment_template_id:
             return Response({'detail': 'assessment_template_id is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,21 +159,23 @@ class StartUserAssessmentView(APIView):
         except AssessmentTemplate.DoesNotExist:
             return Response({'detail': 'Assessment template not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        user_assessment, created = UserAssessment.objects.get_or_create(
+        # Crear uno nuevo (sin usar get_or_create)
+        user_assessment = UserAssessment.objects.create(
             user=request.user,
-            assessment_template=template
+            assessment_template=template,
+            name=name
         )
 
-        if created:
-            # Crear respuestas vacías para cada pregunta del template
-            for question in template.questions.all():
-                UserAnswer.objects.create(
-                    user_assessment=user_assessment,
-                    question_template=question
-                )
+        # Crear respuestas vacías para cada pregunta del template
+        for question in template.questions.all():
+            UserAnswer.objects.create(
+                user_assessment=user_assessment,
+                question_template=question
+            )
 
         serializer = UserAssessmentSerializer(user_assessment)
         return Response(serializer.data)
+
 
 
 class UserAssessmentDetailView(APIView):
