@@ -2,14 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class QuestionTemplate(models.Model):
+    text = models.TextField()
+
+
 class AssessmentTemplate(models.Model):
     title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-
-class QuestionTemplate(models.Model):
-    assessment_template = models.ForeignKey(AssessmentTemplate, related_name='questions', on_delete=models.CASCADE)
-    text = models.TextField()
+    questions = models.ManyToManyField(QuestionTemplate, related_name='assessment_templates')
 
 
 class UserAssessment(models.Model):

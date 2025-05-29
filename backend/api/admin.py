@@ -7,21 +7,21 @@ from .models import (
 )
 
 
-# Muestra las preguntas al editar un AssessmentTemplate
-class QuestionTemplateInline(admin.TabularInline):
-    model = QuestionTemplate
-    extra = 0
+@admin.register(QuestionTemplate)
+class QuestionTemplateAdmin(admin.ModelAdmin):
+    list_display = ('text',)
+    search_fields = ('text',)
+    ordering = ('text',)
 
 
 @admin.register(AssessmentTemplate)
 class AssessmentTemplateAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at')
-    inlines = [QuestionTemplateInline]
     search_fields = ('title',)
     ordering = ('-created_at',)
+    filter_horizontal = ('questions',)  # Esto habilita widget para ManyToMany en admin
 
 
-# Muestra las respuestas al editar un UserAssessment
 class UserAnswerInline(admin.TabularInline):
     model = UserAnswer
     extra = 0
@@ -45,10 +45,3 @@ class UserAnswerAdmin(admin.ModelAdmin):
         'question_template__text',
     )
     ordering = ('user_assessment',)
-
-
-@admin.register(QuestionTemplate)
-class QuestionTemplateAdmin(admin.ModelAdmin):
-    list_display = ('assessment_template', 'text')
-    search_fields = ('text',)
-    ordering = ('assessment_template',)

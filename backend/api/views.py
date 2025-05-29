@@ -9,11 +9,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import AssessmentTemplate, UserAssessment, UserAnswer
+from .models import AssessmentTemplate, UserAssessment, UserAnswer, QuestionTemplate
 from .serializers import (
     AssessmentTemplateSerializer,
     UserAssessmentSerializer,
     UserAnswerSerializer,
+    QuestionTemplateSerializer,
 )
 
 
@@ -112,16 +113,16 @@ class AssessmentTemplateListView(generics.ListAPIView):
     """
     Lista pública de templates de assessment (permitido a cualquiera).
     """
-    queryset = AssessmentTemplate.objects.all()
+    queryset = AssessmentTemplate.objects.prefetch_related('questions').all()
     serializer_class = AssessmentTemplateSerializer
     permission_classes = [AllowAny]
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_assessment(request):
+@permission_classes([IsAdminUser])
+def create_assessment_template(request):
     """
-    Crear un template de assessment (se puede revisar si solo admins).
+    Crear un template de assessment junto con preguntas anidadas enviadas en JSON.
     """
     serializer = AssessmentTemplateSerializer(data=request.data)
     if serializer.is_valid():
@@ -177,7 +178,6 @@ class StartUserAssessmentView(APIView):
         return Response(serializer.data)
 
 
-
 class UserAssessmentDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -201,6 +201,23 @@ class UserAnswerUpdateView(generics.UpdateAPIView):
         # Solo permitir modificar respuestas propias
         return UserAnswer.objects.filter(user_assessment__user=self.request.user)
 
+
 class AssessmentTemplateDetailView(generics.RetrieveUpdateAPIView):
     queryset = AssessmentTemplate.objects.all()
     serializer_class = AssessmentTemplateSerializer
+
+
+# -----------------------
+# QUESTIONS
+# -----------------------
+
+class QuestionListCreateView(generics.ListCreateAPIView):
+    queryset = QuestionTemplate.objects.all()
+    serializer_class = QuestionTemplateSerializer
+    permission_classes = [IsAdminUser]
+
+
+class QuestionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = QuestionTemplate.objects.all()
+    serializer_class = QuestionTemplateSerializer
+    permission_classes = [IsAdminUser]

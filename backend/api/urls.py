@@ -14,12 +14,14 @@ urlpatterns = [
     path('', include(router.urls)),
 
     # Otras rutas que tienes
-    path('assessments/create/', create_assessment, name='create-assessment'),
+    path('assessment-templates/create/', create_assessment_template, name='create-assessment'),
     path('assessments/<int:pk>/', AssessmentTemplateDetailView.as_view(), name='assessment-detail'),
     path('user-assessments/', UserAssessmentListView.as_view(), name='user-assessment-list'),
     path('user-assessments/start/', StartUserAssessmentView.as_view(), name='start-user-assessment'),
     path('user-assessments/answers/<int:pk>/', UserAnswerUpdateView.as_view(), name='user-answer-update'),
     path('user-assessments/<int:pk>/', UserAssessmentDetailView.as_view(), name='user-assessment-detail'),
+    path('questions/', QuestionListCreateView.as_view(), name='question-list-create'),
+    path('questions/<int:pk>/', QuestionRetrieveUpdateDestroyView.as_view(), name='question-detail'),
 
     # Auth
     path('auth/login/', obtain_auth_token),
