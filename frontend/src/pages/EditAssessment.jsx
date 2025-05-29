@@ -42,7 +42,8 @@ const EditAssessment = () => {
     };
 
     const handleAddQuestion = () => {
-        setQuestions(prev => [...prev, {id: null, text: ''}]);
+        // No ponemos id: null, solo texto vacío para nueva pregunta
+        setQuestions(prev => [...prev, {text: ''}]);
     };
 
     const handleDeleteQuestion = (index) => {
@@ -55,43 +56,21 @@ const EditAssessment = () => {
         e.preventDefault();
         setError(null);
 
+        // Filtrar preguntas sin texto para evitar enviar objetos vacíos
+        const filteredQuestions = questions.filter(q => q.text.trim() !== '');
+
         try {
-            // 1. Actualizar assessment
+            // Enviar PUT con las preguntas filtradas
             const resAssessment = await fetch(`${API_BASE}/assessments/${id}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Token ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify({title, description, questions}),
+                body: JSON.stringify({title, description, questions: filteredQuestions}),
             });
 
             if (!resAssessment.ok) throw new Error('Error al actualizar assessment');
-
-            // 2. Actualizar preguntas (una a una)
-            for (const q of questions) {
-                if (q.id) {
-                    // Actualizar existente
-                    await fetch(`${API_BASE}/questions/${q.id}/`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Token ${localStorage.getItem('token')}`,
-                        },
-                        body: JSON.stringify({text: q.text}),
-                    });
-                } else {
-                    // Crear nueva
-                    await fetch(`${API_BASE}/questions/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Token ${localStorage.getItem('token')}`,
-                        },
-                        body: JSON.stringify({text: q.text, assessment: id}),
-                    });
-                }
-            }
 
             alert('Assessment actualizado correctamente');
             navigate('/');

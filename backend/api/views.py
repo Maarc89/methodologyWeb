@@ -190,6 +190,30 @@ class UserAssessmentDetailView(APIView):
         return Response(serializer.data)
 
 
+class FinalizeUserAssessmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        user_assessment = get_object_or_404(UserAssessment, pk=pk, user=request.user)
+
+        if user_assessment.completed:
+            return Response({'detail': 'Assessment ya fue finalizado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_assessment.completed = True
+        user_assessment.save()
+
+        # Análisis simple
+        answers = user_assessment.answers.all()
+        analysis = {
+            'total': answers.count(),
+            'yes': answers.filter(answer='YES').count(),
+            'no': answers.filter(answer='NO').count(),
+            'na': answers.filter(answer='NA').count(),
+            'alt': answers.filter(answer='ALT').count(),
+        }
+
+        return Response({'detail': 'Assessment finalizado', 'analysis': analysis})
+
 class UserAnswerUpdateView(generics.UpdateAPIView):
     """
     Actualizar una respuesta de usuario a una pregunta.
