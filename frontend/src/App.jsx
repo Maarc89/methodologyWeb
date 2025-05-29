@@ -11,6 +11,7 @@ import MyAssessments from './pages/MyAssessments';
 import UserAssessmentDetail from './pages/UserAssessmentDetail';
 import CreateAssessment from './pages/CreateAssessment';
 import Settings from './pages/Settings';
+import EditAssessment from './pages/EditAssessment';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -32,6 +33,7 @@ const App = () => {
                 <Route path="login" element={<Login onLoginSuccess={handleLoginSuccess}/>}/>
                 <Route path="register" element={<Register onRegisterSuccess={handleLoginSuccess}/>}/>
                 <Route path="/create-assessment" element={<CreateAssessment/>}/>
+                <Route path="/assessments/:id/edit" element={<EditAssessment/>}/>
                 <Route
                     path="profile"
                     element={

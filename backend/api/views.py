@@ -200,3 +200,7 @@ class UserAnswerUpdateView(generics.UpdateAPIView):
     def get_queryset(self):
         # Solo permitir modificar respuestas propias
         return UserAnswer.objects.filter(user_assessment__user=self.request.user)
+
+class AssessmentTemplateDetailView(generics.RetrieveUpdateAPIView):
+    queryset = AssessmentTemplate.objects.all()
+    serializer_class = AssessmentTemplateSerializer

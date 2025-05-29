@@ -89,7 +89,7 @@ const Home = () => {
     };
 
     const handleEdit = (id) => {
-        navigate(`/edit-assessment/${id}`);
+        navigate(`/assessments/${id}/edit`);
     };
 
     const handleDelete = async (id) => {

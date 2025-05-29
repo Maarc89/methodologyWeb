@@ -15,6 +15,7 @@ urlpatterns = [
 
     # Otras rutas que tienes
     path('assessments/create/', create_assessment, name='create-assessment'),
+    path('assessments/<int:pk>/', AssessmentTemplateDetailView.as_view(), name='assessment-detail'),
     path('user-assessments/', UserAssessmentListView.as_view(), name='user-assessment-list'),
     path('user-assessments/start/', StartUserAssessmentView.as_view(), name='start-user-assessment'),
     path('user-assessments/answers/<int:pk>/', UserAnswerUpdateView.as_view(), name='user-answer-update'),

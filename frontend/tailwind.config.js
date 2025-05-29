@@ -2,7 +2,7 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}",  // Añade aquí todos tus archivos donde usas clases Tailwind
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {},
