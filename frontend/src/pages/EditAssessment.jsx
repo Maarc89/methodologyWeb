@@ -7,15 +7,12 @@ const EditAssessment = () => {
     const {id} = useParams();
     const navigate = useNavigate();
 
-    const [assessment, setAssessment] = useState(null);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Campos editables (ejemplo: title, description)
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-
-    // Cargar datos de la assessment
     useEffect(() => {
         fetch(`${API_BASE}/assessments/${id}/`, {
             headers: {
@@ -23,13 +20,13 @@ const EditAssessment = () => {
             }
         })
             .then(res => {
-                if (!res.ok) throw new Error('Error al cargar la assessment');
+                if (!res.ok) throw new Error('Error al cargar el assessment');
                 return res.json();
             })
             .then(data => {
-                setAssessment(data);
                 setTitle(data.title);
                 setDescription(data.description);
+                setQuestions(data.questions || []);
                 setLoading(false);
             })
             .catch(err => {
@@ -38,29 +35,70 @@ const EditAssessment = () => {
             });
     }, [id]);
 
-    // Guardar cambios
-    const handleSubmit = (e) => {
+    const handleQuestionChange = (index, value) => {
+        const updated = [...questions];
+        updated[index].text = value;
+        setQuestions(updated);
+    };
+
+    const handleAddQuestion = () => {
+        setQuestions(prev => [...prev, {id: null, text: ''}]);
+    };
+
+    const handleDeleteQuestion = (index) => {
+        const updated = [...questions];
+        updated.splice(index, 1);
+        setQuestions(updated);
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
 
-        fetch(`${API_BASE}/assessments/${id}/`, {
-            method: 'PUT', // o PATCH si solo actualizas campos
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Token ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify({title, description}),
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('Error al actualizar');
-                return res.json();
-            })
-            .then(data => {
-                console.log(data);
-                alert('Assessment actualizada correctamente');
-                navigate('/'); // Redirige a home o a la página que quieras
-            })
-            .catch(err => setError(err.message));
+        try {
+            // 1. Actualizar assessment
+            const resAssessment = await fetch(`${API_BASE}/assessments/${id}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify({title, description, questions}),
+            });
+
+            if (!resAssessment.ok) throw new Error('Error al actualizar assessment');
+
+            // 2. Actualizar preguntas (una a una)
+            for (const q of questions) {
+                if (q.id) {
+                    // Actualizar existente
+                    await fetch(`${API_BASE}/questions/${q.id}/`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Token ${localStorage.getItem('token')}`,
+                        },
+                        body: JSON.stringify({text: q.text}),
+                    });
+                } else {
+                    // Crear nueva
+                    await fetch(`${API_BASE}/questions/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Token ${localStorage.getItem('token')}`,
+                        },
+                        body: JSON.stringify({text: q.text, assessment: id}),
+                    });
+                }
+            }
+
+            alert('Assessment actualizado correctamente');
+            navigate('/');
+        } catch (err) {
+            console.error(err);
+            setError(err.message);
+        }
     };
 
     if (loading) return <p>Cargando...</p>;
@@ -69,11 +107,10 @@ const EditAssessment = () => {
     return (
         <div className="max-w-2xl mx-auto mt-10 p-6 border rounded shadow bg-white">
             <h1 className="text-2xl font-bold mb-4">Editar Assessment</h1>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="block font-semibold mb-1" htmlFor="title">Título</label>
+                    <label className="block font-semibold mb-1">Título</label>
                     <input
-                        id="title"
                         type="text"
                         value={title}
                         onChange={e => setTitle(e.target.value)}
@@ -81,16 +118,42 @@ const EditAssessment = () => {
                         required
                     />
                 </div>
-
                 <div>
-                    <label className="block font-semibold mb-1" htmlFor="description">Descripción</label>
+                    <label className="block font-semibold mb-1">Descripción</label>
                     <textarea
-                        id="description"
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                         className="w-full border rounded p-2"
-                        rows={4}
+                        rows={3}
                     />
+                </div>
+
+                <div>
+                    <label className="block font-semibold mb-2">Preguntas</label>
+                    {questions.map((q, idx) => (
+                        <div key={idx} className="flex items-start space-x-2 mb-2">
+                            <textarea
+                                value={q.text}
+                                onChange={(e) => handleQuestionChange(idx, e.target.value)}
+                                className="flex-grow border rounded p-2"
+                                rows={2}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => handleDeleteQuestion(idx)}
+                                className="text-red-600 font-bold"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={handleAddQuestion}
+                        className="text-blue-600 underline mt-2"
+                    >
+                        Añadir Pregunta
+                    </button>
                 </div>
 
                 <button

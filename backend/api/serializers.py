@@ -17,7 +17,7 @@ class QuestionTemplateSerializer(serializers.ModelSerializer):
 # Incluye preguntas anidadas
 # ----------------------------
 class AssessmentTemplateSerializer(serializers.ModelSerializer):
-    questions = QuestionTemplateSerializer(many=True, read_only=True)
+    questions = QuestionTemplateSerializer(many=True)
 
     class Meta:
         model = AssessmentTemplate
@@ -34,17 +34,46 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
         return assessment
 
     def update(self, instance, validated_data):
-        questions_data = validated_data.pop('questions', None)
+        questions_data = validated_data.pop('questions')
+
+        # Actualizar campos normales del assessment
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        if questions_data is not None:
-            # Para simplificar, borramos las preguntas actuales y creamos nuevas
-            instance.questions.clear()
-            for question_data in questions_data:
-                question = QuestionTemplate.objects.create(**question_data)
+        # Obtener preguntas actuales asociadas al assessment
+        current_questions = instance.questions.all()
+        current_ids = set(q.id for q in current_questions)
+        new_ids = set()
+
+        for question_data in questions_data:
+            q_id = question_data.get('id', None)
+
+            if q_id:  # Pregunta existente -> actualizar
+                try:
+                    question = QuestionTemplate.objects.get(id=q_id)
+                except QuestionTemplate.DoesNotExist:
+                    raise serializers.ValidationError(f'Pregunta con id {q_id} no existe.')
+
+                # Actualizar texto
+                question.text = question_data.get('text', question.text)
+                question.save()
+
+                # Asegurar que la pregunta está asociada al assessment
+                if question not in current_questions:
+                    instance.questions.add(question)
+
+                new_ids.add(q_id)
+
+            else:  # Pregunta nueva -> crear y asociar
+                question = QuestionTemplate.objects.create(text=question_data['text'])
                 instance.questions.add(question)
+                new_ids.add(question.id)
+
+        # Desasociar preguntas que no están en la actualización
+        for q in current_questions:
+            if q.id not in new_ids:
+                instance.questions.remove(q)
 
         return instance
 

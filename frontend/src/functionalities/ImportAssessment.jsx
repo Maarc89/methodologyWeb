@@ -11,7 +11,7 @@ const ImportAssessment = ({onCreated, token, API_BASE}) => {
             const text = await file.text();
             const json = JSON.parse(text);
 
-            const response = await fetch(`${API_BASE}/assessments/create/`, {
+            const response = await fetch(`${API_BASE}/assessment-templates/create/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
