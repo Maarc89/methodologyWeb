@@ -214,6 +214,7 @@ class FinalizeUserAssessmentView(APIView):
 
         return Response({'detail': 'Assessment finalizado', 'analysis': analysis})
 
+
 class UserAnswerUpdateView(generics.UpdateAPIView):
     """
     Actualizar una respuesta de usuario a una pregunta.
@@ -224,6 +225,17 @@ class UserAnswerUpdateView(generics.UpdateAPIView):
     def get_queryset(self):
         # Solo permitir modificar respuestas propias
         return UserAnswer.objects.filter(user_assessment__user=self.request.user)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user_assessment(request, pk):
+    """
+    Elimina un UserAssessment propio del usuario autenticado.
+    """
+    user_assessment = get_object_or_404(UserAssessment, pk=pk, user=request.user)
+    user_assessment.delete()
+    return Response({'detail': 'UserAssessment eliminado correctamente.'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class AssessmentTemplateDetailView(generics.RetrieveUpdateAPIView):

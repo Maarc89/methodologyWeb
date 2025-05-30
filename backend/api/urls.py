@@ -23,6 +23,7 @@ urlpatterns = [
     path('questions/', QuestionListCreateView.as_view(), name='question-list-create'),
     path('questions/<int:pk>/', QuestionRetrieveUpdateDestroyView.as_view(), name='question-detail'),
     path('user-assessments/<int:pk>/finalize/', FinalizeUserAssessmentView.as_view(), name='finalize-assessment'),
+    path('user-assessments/<int:pk>/delete/', delete_user_assessment, name='delete-assessment'),
 
     # Auth
     path('auth/login/', obtain_auth_token),

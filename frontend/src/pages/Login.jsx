@@ -26,7 +26,7 @@ const Login = ({onLoginSuccess}) => {
 
     return (
         <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Login</h2>
+            <h2 className="text-xl font-bold mb-4">Iniciar Sesión</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                     type="text"

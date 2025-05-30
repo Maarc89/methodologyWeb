@@ -47,12 +47,36 @@ const MyAssessments = () => {
                         <p className="text-sm text-gray-600 mb-2">
                             Creado el: {formatDate(ua.started_at)}
                         </p>
-                        <button
-                            className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                            onClick={() => navigate(`/user-assessments/${ua.id}`)}
-                        >
-                            Continuar
-                        </button>
+                        <div className="container-buttons">
+                            <button
+                                className="btn-create"
+                                onClick={() => navigate(`/user-assessments/${ua.id}`)}
+                            >
+                                Continuar
+                            </button>
+                            <button
+                                className="btn-delete"
+                                onClick={() => {
+                                    if (window.confirm("¿Estás seguro de que quieres borrar este assessment?")) {
+                                        fetch(`http://localhost:8001/api/user-assessments/${ua.id}/delete/`, {
+                                            method: 'DELETE',
+                                            headers: {
+                                                Authorization: `Token ${token}`,
+                                            },
+                                        })
+                                            .then((res) => {
+                                                if (res.ok) {
+                                                    setUserAssessments(userAssessments.filter(a => a.id !== ua.id));
+                                                } else {
+                                                    console.error("Error al eliminar assessment");
+                                                }
+                                            });
+                                    }
+                                }}
+                            >
+                                Borrar
+                            </button>
+                        </div>
                     </li>
                 ))}
             </ul>

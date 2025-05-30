@@ -52,13 +52,13 @@ const Header = ({isAuthenticated}) => {
                                     }}
                                     className="dropdown-item"
                                 >
-                                    My Assessments
+                                    Mis Assessments
                                 </button>
                                 <button
                                     onClick={handleLogout}
                                     className="dropdown-item logout"
                                 >
-                                    Logout
+                                    Cerrar Sesión
                                 </button>
                             </div>
                         )}
