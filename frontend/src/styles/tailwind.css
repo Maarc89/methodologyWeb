@@ -18,25 +18,8 @@ body {
   @apply text-2xl font-bold;
 }
 
-.admin-actions {
-  /* ya tiene flex y space-x-2 en JSX, pero puedes moverlo aquí si prefieres */
-}
-
 .btn-create {
   @apply bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700;
-}
-
-.assessment-item {
-  @apply mb-3 p-4 border rounded shadow flex flex-col space-y-2;
-}
-
-.assessment-title {
-  /* Ya aplicaste font-semibold text-xl en JSX, lo puedes mover aquí */
-  @apply font-semibold text-xl;
-}
-
-.assessment-description {
-  @apply text-sm text-gray-600 mb-2;
 }
 
 .container-buttons {
@@ -91,10 +74,6 @@ body {
 
 .dropdown-item {
   @apply block w-full text-left px-4 py-2 hover:bg-gray-100;
-}
-
-.logout {
-  @apply text-red-600;
 }
 
 .btn-link {

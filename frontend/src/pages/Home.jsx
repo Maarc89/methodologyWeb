@@ -152,11 +152,11 @@ const Home = () => {
                 {assessments.map((a) => (
                     <li
                         key={a.id}
-                        className="assessment-item mb-3 p-4 border rounded shadow flex flex-col space-y-2"
+                        className="mb-3 p-4 border rounded shadow flex flex-col space-y-2"
                     >
                         <div>
-                            <h2 className="assessment-title font-semibold text-xl">{a.title}</h2>
-                            <p className="assessment-description text-sm text-gray-600 mb-2">
+                            <h2 className="font-semibold text-xl">{a.title}</h2>
+                            <p className="text-sm text-gray-600 mb-2">
                                 {a.description}
                             </p>
                         </div>

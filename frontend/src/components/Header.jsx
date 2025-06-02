@@ -56,7 +56,7 @@ const Header = ({isAuthenticated}) => {
                                 </button>
                                 <button
                                     onClick={handleLogout}
-                                    className="dropdown-item logout"
+                                    className="dropdown-item text-red-600"
                                 >
                                     Cerrar Sesión
                                 </button>
