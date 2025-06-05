@@ -10,10 +10,6 @@ body {
   @apply max-w-4xl mx-auto mt-10;
 }
 
-.header {
-  /* Puedes dejar vacía o añadir otras reglas si quieres */
-}
-
 .title {
   @apply text-2xl font-bold;
 }
