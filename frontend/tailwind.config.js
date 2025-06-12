@@ -6,15 +6,23 @@ export default {
     ],
     theme: {
         extend: {
-            primary: '#BB308A',      // Color principal
-            secondary: '#AD5696',    // Variación del primario
-            accent: '#00CC66',       // Para resaltar
-            info: '#3291B9',         // Azul claro
-            darkpurple: '#572979',   // Fondo o secciones
-            darkblue: '#2E5C9F',     // Botones o detalles
-            graytext: '#6B6B6B',     // Texto secundario
-            title: '#662483',        // Títulos (en fondo blanco)
-            white: '#FFFFFF',
+            fontFamily: {
+                trebuchet: ['"Trebuchet MS"', 'sans-serif'],
+            },
+            colors: {
+                // Colores principales Eurecat
+                lila: '#662483',
+                fucsia: '#B35099',
+                blau: '#3D6FB6',
+
+                // Colores secundarios Eurecat
+                blauAmagat: '#3C3D91',
+                porpra: '#534588',
+                malva: '#8682B8',
+                gris60: '#878787',
+                gris90: '#3C3C3B',
+                negre: '#3C3C3B',
+            },
         },
     },
     plugins: [],

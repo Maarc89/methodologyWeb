@@ -28,7 +28,15 @@ const App = () => {
 
     return (
         <Routes>
-            <Route path="/" element={<Layout isAuthenticated={isAuthenticated}/>}>
+            <Route
+                path="/"
+                element={
+                    <Layout
+                        isAuthenticated={isAuthenticated}
+                        onLogout={handleLogout}
+                    />
+                }
+            >
                 <Route index element={<Home/>}/>
                 <Route path="login" element={<Login onLoginSuccess={handleLoginSuccess}/>}/>
                 <Route path="register" element={<Register onRegisterSuccess={handleLoginSuccess}/>}/>

@@ -130,10 +130,10 @@ const Home = () => {
 
     return (
         <div className="container-main">
-            <div className="header flex justify-between items-center mb-6">
-                <h1 className="title">Assessments disponibles</h1>
+            <div className="header text-center mb-6">
+                <h1 className="title">Evaluaciones</h1>
                 {isAdmin && (
-                    <div className="admin-actions flex items-center space-x-2">
+                    <div className="admin-actions flex items-center space-x-2 mb-6">
                         <button
                             onClick={() => navigate('/create-assessment')}
                             className="btn-create"
@@ -148,22 +148,22 @@ const Home = () => {
                     </div>
                 )}
             </div>
-            <ul>
+
+            {/* Grid de assessments */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {assessments.map((a) => (
-                    <li
+                    <div
                         key={a.id}
-                        className="mb-3 p-4 border rounded shadow flex flex-col space-y-2"
+                        className="p-4 border rounded shadow flex flex-col space-y-2 bg-white"
                     >
                         <div>
-                            <h2 className="font-semibold text-xl">{a.title}</h2>
-                            <p className="text-sm text-gray-600 mb-2">
-                                {a.description}
-                            </p>
+                            <h2 className="font-semibold text-xl text-title">{a.title}</h2>
+                            <p className="text-sm text-gray-600 mb-2">{a.description}</p>
                         </div>
 
                         {!editingName[a.id] ? (
                             isAdmin ? (
-                                <div className="container-buttons">
+                                <div className="flex gap-2 flex-wrap">
                                     <button
                                         className="btn-primary"
                                         onClick={() => handleStartClick(a.id)}
@@ -184,7 +184,7 @@ const Home = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="container-buttons">
+                                <div className="flex">
                                     <button
                                         className="btn-primary mt-2"
                                         onClick={() => handleStartClick(a.id)}
@@ -202,7 +202,7 @@ const Home = () => {
                                     onChange={(e) => handleNameChange(a.id, e.target.value)}
                                     className="input-name"
                                 />
-                                <div className="container-buttons">
+                                <div className="flex gap-2 flex-wrap">
                                     <button
                                         className="btn-confirm"
                                         onClick={() => handleConfirmStart(a.id)}
@@ -225,9 +225,9 @@ const Home = () => {
                                 </div>
                             </>
                         )}
-                    </li>
+                    </div>
                 ))}
-            </ul>
+            </div>
         </div>
     );
 };

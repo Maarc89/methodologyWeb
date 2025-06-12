@@ -1,7 +1,10 @@
 import {Link, useNavigate} from 'react-router-dom';
 import {useState, useRef, useEffect} from 'react';
+import eurecatLogo from '../assets/eurecat-logo.png';
+import userAvatar from '../assets/profile-icon.png';
 
-const Header = ({isAuthenticated}) => {
+
+const Header = ({isAuthenticated, onLogout}) => {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
     const dropdownRef = useRef();
@@ -18,13 +21,16 @@ const Header = ({isAuthenticated}) => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        navigate('/login');
         setOpen(false);
+        onLogout()
+        navigate('/login');
     };
 
     return (
         <header className="header-container">
-            <Link to="/" className="logo-text">Logo</Link>
+            <Link to="/" className="logo-text">
+                <img src={eurecatLogo} alt="Eurecat Logo" className="logo-image"/>
+            </Link>
             <nav className="nav-container" ref={dropdownRef}>
                 {isAuthenticated ? (
                     <>
@@ -32,7 +38,11 @@ const Header = ({isAuthenticated}) => {
                             onClick={() => setOpen(!open)}
                             className="btn-profile"
                         >
-                            Perfil ▼
+                            <img
+                                src={userAvatar}
+                                alt="Perfil ▼"
+                                className="profile-icon"
+                            />
                         </button>
                         {open && (
                             <div className="dropdown-menu">
@@ -41,7 +51,7 @@ const Header = ({isAuthenticated}) => {
                                         setOpen(false);
                                         navigate('/settings');
                                     }}
-                                    className="dropdown-item"
+                                    className="dropdown-item rounded-t-xl"
                                 >
                                     Configuración
                                 </button>
@@ -52,11 +62,11 @@ const Header = ({isAuthenticated}) => {
                                     }}
                                     className="dropdown-item"
                                 >
-                                    Mis Assessments
+                                    Mis Evaluaciones
                                 </button>
                                 <button
                                     onClick={handleLogout}
-                                    className="dropdown-item text-red-600"
+                                    className="dropdown-item rounded-b-xl"
                                 >
                                     Cerrar Sesión
                                 </button>
@@ -65,8 +75,11 @@ const Header = ({isAuthenticated}) => {
                     </>
                 ) : (
                     <>
-                        <Link to="/login" className="btn-link">Login</Link>
-                        <Link to="/register" className="btn-link">Register</Link>
+                        <Link to="/login"
+                              className="font-bold text-blau hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-xl transition duration-200">Iniciar
+                            Sesión</Link>
+                        <Link to="/register"
+                              className="font-bold text-blau hover:bg-blue-100 hover:text-blue-800 px-3 py-1 rounded-xl transition duration-200">Registrarse</Link>
                     </>
                 )}
             </nav>

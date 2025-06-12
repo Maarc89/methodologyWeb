@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply bg-gray-50 text-gray-900;
+  @apply bg-gray-50 text-gray-900 font-trebuchet;
 }
 
 .container-main {
@@ -11,11 +11,11 @@ body {
 }
 
 .title {
-  @apply text-2xl font-bold;
+  @apply text-2xl font-bold text-center;
 }
 
 .btn-create {
-  @apply bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700;
+  @apply bg-fucsia text-white px-4 py-2 rounded hover:bg-porpra;
 }
 
 .container-buttons {
@@ -23,11 +23,11 @@ body {
 }
 
 .btn-primary {
-  @apply px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700;
+  @apply px-4 py-2 bg-blau text-white rounded hover:bg-blauAmagat;
 }
 
 .btn-edit {
-  @apply px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600;
+  @apply px-4 py-2 bg-malva text-white rounded hover:bg-porpra;
 }
 
 .btn-delete {
@@ -39,7 +39,7 @@ body {
 }
 
 .btn-cancel {
-  @apply px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500;
+  @apply px-4 py-2 bg-gris60 text-white rounded hover:bg-gris90;
 }
 
 .input-name {
@@ -48,12 +48,16 @@ body {
 
 /* Header.jsx */
 
+.logo-image {
+  height: 40px;
+  width: auto;
+}
 .header-container {
   @apply bg-white shadow p-4 flex justify-between items-center;
 }
 
 .logo-text {
-  @apply text-xl font-bold;
+  @apply text-xl font-bold text-lila;
 }
 
 .nav-container {
@@ -61,18 +65,19 @@ body {
 }
 
 .btn-profile {
-  @apply text-blue-600 hover:underline focus:outline-none;
+  @apply text-blau hover:underline focus:outline-none;
+}
+
+.profile-icon {
+  height: 40px;
+  width: auto;
 }
 
 .dropdown-menu {
-  @apply absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10;
+  @apply absolute right-0 mt-2 w-56 bg-white border border-gray-300 rounded-xl shadow-lg z-50;
 }
 
 .dropdown-item {
-  @apply block w-full text-left px-4 py-2 hover:bg-gray-100;
-}
-
-.btn-link {
-  @apply text-blue-600 hover:underline;
+  @apply block w-full px-4 py-2 text-sm font-medium text-gray-800 hover:bg-blue-50 hover:text-blau;
 }
 

@@ -38,9 +38,9 @@ const MyAssessments = () => {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold mb-4">Mis Assessments</h1>
+            <h1 className="text-2xl font-bold mb-4">Mis Evaluaciones</h1>
             <ul>
-                {userAssessments.length === 0 && <p>No has empezado ningún assessment.</p>}
+                {userAssessments.length === 0 && <p>No has empezado ningúna evaluación.</p>}
                 {userAssessments.map((ua) => (
                     <li key={ua.id} className="mb-3 p-4 border rounded shadow">
                         <h2 className="font-semibold text-xl">{ua.name || ua.assessment_template.title}</h2>
@@ -57,7 +57,7 @@ const MyAssessments = () => {
                             <button
                                 className="btn-delete"
                                 onClick={() => {
-                                    if (window.confirm("¿Estás seguro de que quieres borrar este assessment?")) {
+                                    if (window.confirm("¿Estás seguro de que quieres borrar esta evaluación?")) {
                                         fetch(`http://localhost:8001/api/user-assessments/${ua.id}/delete/`, {
                                             method: 'DELETE',
                                             headers: {
@@ -68,7 +68,7 @@ const MyAssessments = () => {
                                                 if (res.ok) {
                                                     setUserAssessments(userAssessments.filter(a => a.id !== ua.id));
                                                 } else {
-                                                    console.error("Error al eliminar assessment");
+                                                    console.error("Error al eliminar la evaluación");
                                                 }
                                             });
                                     }
