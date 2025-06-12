@@ -49,7 +49,7 @@ const MyAssessments = () => {
                         </p>
                         <div className="container-buttons">
                             <button
-                                className="btn-create"
+                                className="btn-secondary"
                                 onClick={() => navigate(`/user-assessments/${ua.id}`)}
                             >
                                 Continuar

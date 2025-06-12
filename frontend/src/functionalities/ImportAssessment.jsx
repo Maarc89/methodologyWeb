@@ -26,7 +26,7 @@ const ImportAssessment = ({onCreated, token, API_BASE}) => {
             } else {
                 const data = await response.json();
                 setError(null);
-                alert('Assessment importado correctamente');
+                alert('Evaluación importada correctamente');
                 if (onCreated) onCreated(data);
             }
         } catch (err) {
@@ -40,9 +40,9 @@ const ImportAssessment = ({onCreated, token, API_BASE}) => {
             <label
                 htmlFor="import-assessment-input"
                 style={{cursor: 'pointer'}}
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 ml-2"
+                className="btn-secondary"
             >
-                Importar Assessment
+                Importar Evaluación
             </label>
             <input
                 id="import-assessment-input"

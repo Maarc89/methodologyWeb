@@ -67,89 +67,91 @@ const Settings = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-8 p-4 border rounded shadow">
-            <h2 className="text-xl font-semibold mb-4">Configuración</h2>
+        <div className="flex justify-center items-center mt-10 px-4">
+            <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-md">
+                <h2 className="text-2xl font-semibold text-center mb-6 text-title">Configuración</h2>
 
-            {message && <div className="mb-4 text-blue-600">{message}</div>}
+                {message && <div className="mb-4 text-blau text-sm text-center">{message}</div>}
 
-            {/* EMAIL SECTION */}
-            <div className="mb-6">
-                <label className="block font-medium mb-1">Correo electrónico</label>
-                {editingEmail ? (
-                    <div className="flex gap-2">
-                        <input
-                            type="email"
-                            value={newEmail}
-                            onChange={(e) => setNewEmail(e.target.value)}
-                            className="border px-2 py-1 flex-1"
-                        />
+                {/* EMAIL SECTION */}
+                <div className="mb-6">
+                    <label className="block text-sm font-bold mb-1 text-gray-700">Correo electrónico</label>
+                    {editingEmail ? (
+                        <div className="flex gap-2">
+                            <input
+                                type="email"
+                                value={newEmail}
+                                onChange={(e) => setNewEmail(e.target.value)}
+                                className="w-full border rounded-lg px-3 py-2 text-sm"
+                            />
+                            <button
+                                onClick={handleEmailUpdate}
+                                className="bg-green-600 text-white px-3 py-2 text-sm rounded-lg hover:bg-green-700"
+                            >
+                                Guardar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setNewEmail(email);
+                                    setEditingEmail(false);
+                                }}
+                                className="text-red-500 text-sm hover:underline"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-800">{email}</span>
+                            <button
+                                onClick={() => setEditingEmail(true)}
+                                className="text-blau text-sm hover:underline"
+                            >
+                                Editar
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* PASSWORD SECTION */}
+                <div className="mb-4">
+                    <button
+                        onClick={() => setShowPasswordForm(!showPasswordForm)}
+                        className="text-blau text-sm hover:underline"
+                    >
+                        {showPasswordForm ? 'Ocultar cambio de contraseña' : 'Cambiar contraseña'}
+                    </button>
+                </div>
+
+                {showPasswordForm && (
+                    <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
+                            <input
+                                type="password"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                className="w-full border rounded-lg px-3 py-2 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+                            <input
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full border rounded-lg px-3 py-2 text-sm"
+                            />
+                        </div>
                         <button
-                            onClick={handleEmailUpdate}
-                            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                            type="submit"
+                            className="w-full bg-blau text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
                         >
-                            Guardar
+                            Guardar nueva contraseña
                         </button>
-                        <button
-                            onClick={() => {
-                                setNewEmail(email);
-                                setEditingEmail(false);
-                            }}
-                            className="text-red-500 hover:underline"
-                        >
-                            Cancelar
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex justify-between items-center">
-                        <span>{email}</span>
-                        <button
-                            onClick={() => setEditingEmail(true)}
-                            className="text-blue-600 hover:underline"
-                        >
-                            Editar
-                        </button>
-                    </div>
+                    </form>
                 )}
             </div>
-
-            {/* PASSWORD SECTION */}
-            <div className="mb-2">
-                <button
-                    onClick={() => setShowPasswordForm(!showPasswordForm)}
-                    className="text-blue-600 hover:underline"
-                >
-                    {showPasswordForm ? 'Ocultar cambio de contraseña' : 'Cambiar contraseña'}
-                </button>
-            </div>
-
-            {showPasswordForm && (
-                <form onSubmit={handlePasswordUpdate} className="space-y-4 mt-4">
-                    <div>
-                        <label className="block">Contraseña actual</label>
-                        <input
-                            type="password"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            className="w-full border px-2 py-1"
-                        />
-                    </div>
-                    <div>
-                        <label className="block">Nueva contraseña</label>
-                        <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full border px-2 py-1"
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                        Guardar nueva contraseña
-                    </button>
-                </form>
-            )}
         </div>
     );
 };

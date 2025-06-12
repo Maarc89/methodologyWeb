@@ -7,7 +7,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                trebuchet: ['"Trebuchet MS"', 'sans-serif'],
+                trebuchet: ['"Source Sans 3"', '"Trebuchet MS"', 'sans-serif'],
             },
             colors: {
                 // Colores principales Eurecat

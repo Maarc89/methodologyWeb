@@ -133,12 +133,12 @@ const Home = () => {
             <div className="header text-center mb-6">
                 <h1 className="title">Evaluaciones</h1>
                 {isAdmin && (
-                    <div className="admin-actions flex items-center space-x-2 mb-6">
+                    <div className="admin-actions flex justify-center items-center space-x-4 mt-4 mb-6">
                         <button
                             onClick={() => navigate('/create-assessment')}
-                            className="btn-create"
+                            className="btn-secondary"
                         >
-                            Crear Assessment
+                            Crear Evaluación
                         </button>
                         <ImportAssessment
                             token={token}
@@ -171,7 +171,7 @@ const Home = () => {
                                         Empezar
                                     </button>
                                     <button
-                                        className="btn-edit"
+                                        className="btn-secondary"
                                         onClick={() => handleEdit(a.id)}
                                     >
                                         Editar

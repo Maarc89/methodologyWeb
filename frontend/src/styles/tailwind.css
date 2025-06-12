@@ -14,10 +14,6 @@ body {
   @apply text-2xl font-bold text-center;
 }
 
-.btn-create {
-  @apply bg-fucsia text-white px-4 py-2 rounded hover:bg-porpra;
-}
-
 .container-buttons {
   @apply flex space-x-2 mt-2;
 }
@@ -26,7 +22,7 @@ body {
   @apply px-4 py-2 bg-blau text-white rounded hover:bg-blauAmagat;
 }
 
-.btn-edit {
+.btn-secondary {
   @apply px-4 py-2 bg-malva text-white rounded hover:bg-porpra;
 }
 
