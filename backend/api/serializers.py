@@ -1,14 +1,17 @@
 from rest_framework import serializers
-from .models import AssessmentTemplate, QuestionTemplate, UserAssessment, UserAnswer
+from .models import *
 
 
 # ----------------------------
 # SERIALIZER PARA PREGUNTAS
 # ----------------------------
 class QuestionTemplateSerializer(serializers.ModelSerializer):
+    option_set = serializers.CharField(required=False, allow_null=True)
+    area = serializers.CharField()
+
     class Meta:
         model = QuestionTemplate
-        fields = ['id', 'text']
+        fields = ['id', 'text', 'option_set', 'area']
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
 
 
@@ -28,49 +31,71 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
         assessment = AssessmentTemplate.objects.create(**validated_data)
 
         for question_data in questions_data:
-            question = QuestionTemplate.objects.create(**question_data)
+            option_set_name = question_data.pop('option_set', None)
+            area_name = question_data.pop('area')
+
+            option_set = None
+            if option_set_name:
+                option_set, _ = AnswerOptionSet.objects.get_or_create(name=option_set_name)
+
+            area, _ = QuestionArea.objects.get_or_create(name=area_name)
+
+            question = QuestionTemplate.objects.create(
+                option_set=option_set,
+                area=area,
+                **question_data
+            )
             assessment.questions.add(question)
 
         return assessment
 
     def update(self, instance, validated_data):
-        questions_data = validated_data.pop('questions')
+        questions_data = validated_data.pop('questions', [])
 
-        # Actualizar campos normales del assessment
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Obtener preguntas actuales asociadas al assessment
         current_questions = instance.questions.all()
         current_ids = set(q.id for q in current_questions)
         new_ids = set()
 
         for question_data in questions_data:
             q_id = question_data.get('id', None)
+            option_set_name = question_data.pop('option_set', None)
+            area_name = question_data.pop('area')
 
-            if q_id:  # Pregunta existente -> actualizar
+            option_set = None
+            if option_set_name:
+                option_set, _ = AnswerOptionSet.objects.get_or_create(name=option_set_name)
+
+            area, _ = QuestionArea.objects.get_or_create(name=area_name)
+
+            if q_id:
                 try:
                     question = QuestionTemplate.objects.get(id=q_id)
                 except QuestionTemplate.DoesNotExist:
                     raise serializers.ValidationError(f'Pregunta con id {q_id} no existe.')
 
-                # Actualizar texto
                 question.text = question_data.get('text', question.text)
+                question.option_set = option_set
+                question.area = area
                 question.save()
 
-                # Asegurar que la pregunta está asociada al assessment
                 if question not in current_questions:
                     instance.questions.add(question)
 
                 new_ids.add(q_id)
 
-            else:  # Pregunta nueva -> crear y asociar
-                question = QuestionTemplate.objects.create(text=question_data['text'])
+            else:
+                question = QuestionTemplate.objects.create(
+                    option_set=option_set,
+                    area=area,
+                    **question_data
+                )
                 instance.questions.add(question)
                 new_ids.add(question.id)
 
-        # Desasociar preguntas que no están en la actualización
         for q in current_questions:
             if q.id not in new_ids:
                 instance.questions.remove(q)
@@ -84,11 +109,11 @@ class AssessmentTemplateSerializer(serializers.ModelSerializer):
 # ----------------------------
 class UserAnswerSerializer(serializers.ModelSerializer):
     question_template = QuestionTemplateSerializer(read_only=True)
+    selected_option_text = serializers.CharField(source='selected_option.text', read_only=True)
 
     class Meta:
         model = UserAnswer
-        fields = ['id', 'question_template', 'answer']
-
+        fields = ['id', 'question_template', 'selected_option_text']
 
 # ----------------------------
 # SERIALIZER PARA ASSESSMENTS DE USUARIO

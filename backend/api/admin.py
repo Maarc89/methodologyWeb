@@ -19,7 +19,7 @@ class AssessmentTemplateAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at')
     search_fields = ('title',)
     ordering = ('-created_at',)
-    filter_horizontal = ('questions',)  # Esto habilita widget para ManyToMany en admin
+    filter_horizontal = ('questions',)
 
 
 class UserAnswerInline(admin.TabularInline):
@@ -38,10 +38,15 @@ class UserAssessmentAdmin(admin.ModelAdmin):
 
 @admin.register(UserAnswer)
 class UserAnswerAdmin(admin.ModelAdmin):
-    list_display = ('user_assessment', 'question_template', 'answer')
-    list_filter = ('answer',)
+    list_display = ('user_assessment', 'question_template', 'get_selected_option')
+    list_filter = ('selected_option',)
     search_fields = (
         'user_assessment__user__username',
         'question_template__text',
     )
     ordering = ('user_assessment',)
+
+    def get_selected_option(self, obj):
+        return obj.selected_option.label if obj.selected_option else '-'
+
+    get_selected_option.short_description = 'Answer'

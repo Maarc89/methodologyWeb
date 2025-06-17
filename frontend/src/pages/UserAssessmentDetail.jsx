@@ -8,7 +8,6 @@ const UserAssessmentDetail = () => {
     const [savingAnswerId, setSavingAnswerId] = useState(null);
     const [finalizing, setFinalizing] = useState(false);
     const [finalized, setFinalized] = useState(false);
-    const [analysis, setAnalysis] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
     const token = localStorage.getItem('token');
     const API_BASE = 'http://localhost:8001/api';
@@ -38,9 +37,6 @@ const UserAssessmentDetail = () => {
                         .then(res => {
                             if (res.ok) return res.json();
                             return null;
-                        })
-                        .then(data => {
-                            if (data?.analysis) setAnalysis(data.analysis);
                         })
                         .catch(() => {
                             // No hacer nada si falla análisis
@@ -101,9 +97,7 @@ const UserAssessmentDetail = () => {
 
             if (!res.ok) throw new Error('Error al finalizar assessment');
 
-            const data = await res.json();
             setFinalized(true);
-            setAnalysis(data.analysis);
         } catch (err) {
             console.error(err);
             setErrorMsg('Error al finalizar assessment');
@@ -144,9 +138,7 @@ const UserAssessmentDetail = () => {
                                     {option === 'ALT' && 'Alternativa'}
                                 </button>
                             ))}
-                            {savingAnswerId === answer.id && (
-                                <span className="ml-2 text-sm text-gray-500 italic">Guardando...</span>
-                            )}
+                            {savingAnswerId === answer.id}
                         </div>
                     </li>
                 ))}
@@ -167,18 +159,6 @@ const UserAssessmentDetail = () => {
                     <div className="mt-6 text-green-700 font-semibold">
                         Assessment finalizado.
                     </div>
-                    {analysis && (
-                        <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow">
-                            <h2 className="text-xl font-bold mb-2">Análisis del Assessment</h2>
-                            <ul className="list-disc pl-5 text-gray-800">
-                                <li>Total de respuestas: {analysis.total}</li>
-                                <li>✔️ Sí: {analysis.yes}</li>
-                                <li>❌ No: {analysis.no}</li>
-                                <li>🟡 No Aplica: {analysis.na}</li>
-                                <li>🔀 Alternativa: {analysis.alt}</li>
-                            </ul>
-                        </div>
-                    )}
                 </>
             )}
         </div>
