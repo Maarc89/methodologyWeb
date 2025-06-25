@@ -3,7 +3,8 @@ from .models import (
     AssessmentTemplate,
     QuestionTemplate,
     UserAssessment,
-    UserAnswer
+    UserAnswer,
+    QuestionArea
 )
 
 
@@ -50,3 +51,8 @@ class UserAnswerAdmin(admin.ModelAdmin):
         return obj.selected_option.label if obj.selected_option else '-'
 
     get_selected_option.short_description = 'Answer'
+
+
+@admin.register(QuestionArea)
+class QuestionArea(admin.ModelAdmin):
+    list_display = ('name',)

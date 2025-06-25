@@ -1,3 +1,4 @@
+// ImportAssessment.jsx
 import {useState} from "react";
 
 const ImportAssessment = ({onCreated, token, API_BASE}) => {
@@ -11,7 +12,7 @@ const ImportAssessment = ({onCreated, token, API_BASE}) => {
             const text = await file.text();
             const json = JSON.parse(text);
 
-            const response = await fetch(`${API_BASE}/assessment-templates/create/`, {
+            const response = await fetch(`${API_BASE}/assessment-templates/import/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

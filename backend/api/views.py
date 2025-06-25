@@ -1,3 +1,6 @@
+import logging
+from tokenize import triple_quoted
+
 from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import get_object_or_404
@@ -9,12 +12,15 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import AssessmentTemplate, UserAssessment, UserAnswer, QuestionTemplate
+from collections import defaultdict
+
+from .models import *
 from .serializers import (
     AssessmentTemplateSerializer,
     UserAssessmentSerializer,
     UserAnswerSerializer,
     QuestionTemplateSerializer,
+    AnswerOptionSetSerializer,
 )
 
 
@@ -118,11 +124,41 @@ class AssessmentTemplateListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
 
+@api_view(['POST', 'PUT'])
+@permission_classes([IsAdminUser])
+def assessment_template_create_update(request):
+    """
+    Crear o actualizar una plantilla de assessment con preguntas nuevas o existentes.
+    - POST para crear
+    - PUT para actualizar (requiere id en el body)
+    """
+
+    if request.method == 'POST':
+        serializer = AssessmentTemplateSerializer(data=request.data)
+    else:  # PUT
+        try:
+            template = AssessmentTemplate.objects.get(id=request.data.get('id'))
+            print(template)
+        except AssessmentTemplate.DoesNotExist:
+            return Response({'detail': 'AssessmentTemplate no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = AssessmentTemplateSerializer(template, data=request.data)
+
+    if serializer.is_valid():
+
+
+        serializer.save()
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED if request.method == 'POST' else status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
-def create_assessment_template(request):
+def import_assessment_template(request):
     """
-    Crear un template de assessment junto con preguntas anidadas enviadas en JSON.
+    Importar una plantilla de assessment desde JSON externo.
+    Usa el mismo serializer que la creación.
     """
     serializer = AssessmentTemplateSerializer(data=request.data)
     if serializer.is_valid():
@@ -202,17 +238,7 @@ class FinalizeUserAssessmentView(APIView):
         user_assessment.completed = True
         user_assessment.save()
 
-        # Análisis simple
-        answers = user_assessment.answers.all()
-        analysis = {
-            'total': answers.count(),
-            'yes': answers.filter(answer='YES').count(),
-            'no': answers.filter(answer='NO').count(),
-            'na': answers.filter(answer='NA').count(),
-            'alt': answers.filter(answer='ALT').count(),
-        }
-
-        return Response({'detail': 'Assessment finalizado', 'analysis': analysis})
+        return Response({'detail': 'Assessment finalizado correctamente.'})
 
 
 class UserAnswerUpdateView(generics.UpdateAPIView):
@@ -253,7 +279,72 @@ class QuestionListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAdminUser]
 
 
+# -----------------------
+# ASSESSMENT ANALYSIS
+# -----------------------
+
 class QuestionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = QuestionTemplate.objects.all()
     serializer_class = QuestionTemplateSerializer
     permission_classes = [IsAdminUser]
+
+
+@api_view(['GET'])
+def assessment_analysis(request, user_assessment_id):
+    try:
+        ua = UserAssessment.objects.get(id=user_assessment_id)
+    except UserAssessment.DoesNotExist:
+        return Response({'error': 'UserAssessment no encontrado'}, status=404)
+
+    # Obtener respuestas relacionadas con la pregunta y opción seleccionada
+    answers = ua.answers.select_related('question_template__area', 'selected_option')
+
+    # Estructura para contar por área y por opción real (clave dinámica)
+    area_stats = defaultdict(lambda: defaultdict(int))
+
+    total_controls = 0
+    total_fully_compliant = 0
+
+    for answer in answers:
+        area_name = answer.question_template.area.name
+        selected = answer.selected_option.value if answer.selected_option else 'N/A'
+
+        area_stats[area_name][selected] += 1
+        total_controls += 1
+        # Consideramos como "fully compliant" las respuestas 'yes' o 'Sí' (puedes adaptar)
+        if selected.lower() in ['yes', 'sí', 'si']:
+            total_fully_compliant += 1
+
+    # Preparar datos para gráfico de barras con claves dinámicas
+    bar_chart_data = []
+    for area, counts in area_stats.items():
+        entry = {'area': area}
+        entry.update(counts)  # Añade todas las respuestas con sus conteos
+        bar_chart_data.append(entry)
+
+    # Preparar datos para gráfico de araña con porcentaje de "sí" o "yes"
+    spider_chart_data = []
+    for area, counts in area_stats.items():
+        total_area = sum(counts.values())
+        yes_count = counts.get('Sí', 0) + counts.get('yes', 0) + counts.get('si', 0)
+        porcentaje = (yes_count / total_area * 100) if total_area else 0
+        spider_chart_data.append({
+            'area': area,
+            'porcentaje': porcentaje
+        })
+
+    percent_fully_compliant = (total_fully_compliant / total_controls * 100) if total_controls else 0
+
+    return Response({
+        'pie': {
+            'percent_fully_compliant': percent_fully_compliant,
+            'total_controls': total_controls,
+        },
+        'bar': bar_chart_data,
+        'spider': spider_chart_data,
+    })
+
+class AnswerOptionSetViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = AnswerOptionSet.objects.all()
+    serializer_class = AnswerOptionSetSerializer
+    permission_classes = [IsAuthenticated]

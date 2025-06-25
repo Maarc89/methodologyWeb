@@ -1,5 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
+import AssessmentAnalysis from '../functionalities/AssessmentAnalysis.jsx';
+
 
 const UserAssessmentDetail = () => {
     const {id} = useParams();
@@ -8,39 +10,49 @@ const UserAssessmentDetail = () => {
     const [savingAnswerId, setSavingAnswerId] = useState(null);
     const [finalizing, setFinalizing] = useState(false);
     const [finalized, setFinalized] = useState(false);
+    const [assessmentAnalysis, setAssessmentAnalysis] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
     const token = localStorage.getItem('token');
     const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
+        if (!token) {
+            setErrorMsg('No hay token de autenticación');
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
+        setErrorMsg('');
+
         fetch(`${API_BASE}/user-assessments/${id}/`, {
-            headers: {Authorization: `Token ${token}`}
+            headers: {Authorization: `Token ${token}`},
         })
             .then(res => {
-                if (!res.ok) throw new Error('Error al cargar assessment');
+                if (!res.ok) throw new Error(`Error al cargar assessment: ${res.statusText}`);
                 return res.json();
             })
-            .then(data => {
+            .then(async data => {
+                console.log('Assessment recibido:', data);
                 setUserAssessment(data);
 
                 if (data.completed) {
                     setFinalized(true);
 
-                    // Obtener análisis si ya está finalizado
-                    fetch(`${API_BASE}/user-assessments/${id}/finalize/`, {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Token ${token}`,
-                        },
-                    })
-                        .then(res => {
-                            if (res.ok) return res.json();
-                            return null;
-                        })
-                        .catch(() => {
-                            // No hacer nada si falla análisis
+                    try {
+                        const resAnalysis = await fetch(`${API_BASE}/user-assessments/${id}/analysis/`, {
+                            headers: {Authorization: `Token ${token}`},
                         });
+                        if (resAnalysis.ok) {
+                            const analysisData = await resAnalysis.json();
+                            setAssessmentAnalysis(analysisData);
+                        } else {
+                            setErrorMsg('No se pudo cargar el análisis');
+                        }
+                    } catch (err) {
+                        console.error('No se pudo cargar el análisis:', err);
+                        setErrorMsg('Error cargando análisis');
+                    }
                 }
 
                 setLoading(false);
@@ -52,32 +64,46 @@ const UserAssessmentDetail = () => {
             });
     }, [id, token]);
 
-    const handleAnswerChange = async (answerId, newAnswer) => {
-        const currentAnswer = userAssessment.answers.find(a => a.id === answerId)?.answer;
-        if (currentAnswer === newAnswer) return;
+    const handleAnswerChange = async (answerId, newAnswerValue) => {
+        const answerObj = userAssessment.answers.find(a => a.id === answerId);
+        const currentAnswer = answerObj?.selected_option?.value;
+        if (currentAnswer === newAnswerValue) return;
 
         setSavingAnswerId(answerId);
         setErrorMsg('');
+
+        const options = answerObj.question_template.options;
+        const newSelectedOption = options?.find(opt => opt.value === newAnswerValue);
+
+        if (!newSelectedOption) {
+            setErrorMsg('Opción seleccionada no válida');
+            setSavingAnswerId(null);
+            return;
+        }
 
         try {
             const res = await fetch(`${API_BASE}/user-assessments/answers/${answerId}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Token ${token}`
+                    Authorization: `Token ${token}`,
                 },
-                body: JSON.stringify({answer: newAnswer}),
+                body: JSON.stringify({selected_option: newSelectedOption.id})
             });
 
             if (!res.ok) throw new Error('Error al actualizar la respuesta');
 
             setUserAssessment(prev => {
-                const updatedAnswers = prev.answers.map(a =>
-                    a.id === answerId ? {...a, answer: newAnswer} : a
-                );
+                const updatedAnswers = prev.answers.map(a => {
+                    if (a.id === answerId) {
+                        return {...a, selected_option: newSelectedOption};
+                    }
+                    return a;
+                });
                 return {...prev, answers: updatedAnswers};
             });
-        } catch {
+        } catch (err) {
+            console.error(err);
             setErrorMsg('Error al actualizar la respuesta');
         } finally {
             setSavingAnswerId(null);
@@ -98,6 +124,16 @@ const UserAssessmentDetail = () => {
             if (!res.ok) throw new Error('Error al finalizar assessment');
 
             setFinalized(true);
+
+            const resAnalysis = await fetch(`${API_BASE}/user-assessments/${id}/analysis/`, {
+                headers: {Authorization: `Token ${token}`},
+            });
+            if (resAnalysis.ok) {
+                const analysisData = await resAnalysis.json();
+                setAssessmentAnalysis(analysisData);
+            } else {
+                setErrorMsg('No se pudo cargar el análisis después de finalizar');
+            }
         } catch (err) {
             console.error(err);
             setErrorMsg('Error al finalizar assessment');
@@ -118,31 +154,29 @@ const UserAssessmentDetail = () => {
             )}
 
             <ul>
-                {userAssessment.answers.map(answer => (
+                {(userAssessment.answers ?? []).map(answer => (
                     <li key={answer.id} className="mb-4 p-4 border rounded shadow">
                         <p className="mb-2 font-medium">{answer.question_template.text}</p>
                         <div className="flex flex-wrap gap-2">
-                            {['YES', 'NO', 'NA', 'ALT'].map(option => (
-                                <button
-                                    key={option}
-                                    onClick={() => handleAnswerChange(answer.id, option)}
-                                    disabled={savingAnswerId === answer.id || finalized}
-                                    className={`py-2 px-4 rounded-lg transition-all duration-200
-                    ${answer.answer === option
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
-                                >
-                                    {option === 'YES' && 'Sí'}
-                                    {option === 'NO' && 'No'}
-                                    {option === 'NA' && 'No Aplica'}
-                                    {option === 'ALT' && 'Alternativa'}
-                                </button>
-                            ))}
-                            {savingAnswerId === answer.id}
+                            {Array.isArray(answer.question_template.options) &&
+                                answer.question_template.options.map(option => (
+                                    <button
+                                        key={option.id}
+                                        onClick={() => handleAnswerChange(answer.id, option.value)}
+                                        disabled={savingAnswerId === answer.id || finalized}
+                                        className={`py-2 px-4 rounded-lg transition-all duration-200
+                                ${answer.selected_option?.id === option.id
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
                         </div>
                     </li>
                 ))}
             </ul>
+
 
             {!finalized ? (
                 <div className="mt-6">
@@ -159,6 +193,17 @@ const UserAssessmentDetail = () => {
                     <div className="mt-6 text-green-700 font-semibold">
                         Assessment finalizado.
                     </div>
+
+                    {assessmentAnalysis ? (
+                        <div className="mt-4 p-4 border rounded bg-gray-100">
+                            <h2 className="text-xl font-bold mb-2">Análisis del Assessment</h2>
+                            {/* Aquí reemplaza el JSON por el componente gráfico */}
+                            <AssessmentAnalysis userAssessmentId={id}/>
+                        </div>
+                    ) : (
+                        <div className="mt-4">Cargando análisis...</div>
+                    )}
+
                 </>
             )}
         </div>
