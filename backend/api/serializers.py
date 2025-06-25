@@ -20,7 +20,7 @@ class AnswerOptionSetSerializer(serializers.ModelSerializer):
 
 
 class QuestionTemplateSerializer(serializers.ModelSerializer):
-    option_set = serializers.CharField(allow_null=True, required=False)  # ahora es string (nombre)
+    option_set = serializers.CharField(allow_null=True, required=False)
     area = serializers.CharField()
 
     options = serializers.SerializerMethodField(read_only=True)
@@ -34,6 +34,12 @@ class QuestionTemplateSerializer(serializers.ModelSerializer):
         if obj.option_set:
             return AnswerOptionSerializer(obj.option_set.options.all(), many=True).data
         return []
+
+
+class QuestionAreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionArea
+        fields = ['id', 'name']
 
 
 # ----------------------------

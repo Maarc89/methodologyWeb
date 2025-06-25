@@ -24,6 +24,7 @@ urlpatterns = [
     path('user-assessments/<int:pk>/', UserAssessmentDetailView.as_view(), name='user-assessment-detail'),
     path('questions/', QuestionListCreateView.as_view(), name='question-list-create'),
     path('questions/<int:pk>/', QuestionRetrieveUpdateDestroyView.as_view(), name='question-detail'),
+    path('question-areas/', QuestionAreaListCreateView.as_view(), name='question-areas'),
     path('user-assessments/<int:pk>/finalize/', FinalizeUserAssessmentView.as_view(), name='finalize-assessment'),
     path('user-assessments/<int:pk>/delete/', delete_user_assessment, name='delete-assessment'),
     path('user-assessments/<int:user_assessment_id>/analysis/', assessment_analysis, name='assessment-analysis'),

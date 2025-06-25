@@ -21,6 +21,7 @@ from .serializers import (
     UserAnswerSerializer,
     QuestionTemplateSerializer,
     AnswerOptionSetSerializer,
+    QuestionAreaSerializer,
 )
 
 
@@ -348,3 +349,7 @@ class AnswerOptionSetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AnswerOptionSet.objects.all()
     serializer_class = AnswerOptionSetSerializer
     permission_classes = [IsAuthenticated]
+
+class QuestionAreaListCreateView(generics.ListCreateAPIView):
+    queryset = QuestionArea.objects.all()
+    serializer_class = QuestionAreaSerializer
