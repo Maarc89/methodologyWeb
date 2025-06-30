@@ -1,11 +1,10 @@
 from django.contrib import admin
-from .models import (
-    AssessmentTemplate,
-    QuestionTemplate,
-    UserAssessment,
-    UserAnswer,
-    QuestionArea
-)
+from .models import *
+
+
+class AnswerOptionInline(admin.TabularInline):
+    model = AnswerOption
+    extra = 1
 
 
 @admin.register(QuestionTemplate)
@@ -54,5 +53,11 @@ class UserAnswerAdmin(admin.ModelAdmin):
 
 
 @admin.register(QuestionArea)
-class QuestionArea(admin.ModelAdmin):
+class QuestionAreaAdmin(admin.ModelAdmin):
     list_display = ('name',)
+
+
+@admin.register(AnswerOptionSet)
+class AnswerOptionSetAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    inlines = [AnswerOptionInline]

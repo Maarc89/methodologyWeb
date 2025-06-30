@@ -13,6 +13,7 @@ services:
     # En desarrollo Django gestiona los ficheros estáticos
     #  - static_volume:/app/staticfiles
     working_dir: /app/backend
+    # Comentarlo para producción
     ports:
       - "8001:8000"
     env_file:
@@ -28,11 +29,13 @@ services:
     container_name: vite_app
     volumes:
       - ./frontend:/app/frontend
+      - frontend_build:/app/frontend/dist
     working_dir: /app/frontend
     # Para desarrollo
     command: sh -c "npm install && npm run dev -- --host"
     # Para producción
-    # command: sh -c "npm install && npm run build && npm run preview -- --port 5173 --host"
+    # command: sh -c "npm install && npm run build"
+    # Comentarlo para producción
     ports:
       - "5173:5173"
 
@@ -65,3 +68,4 @@ services:
 volumes:
   pgdata:
   # static_volume:
+  # frontend_build

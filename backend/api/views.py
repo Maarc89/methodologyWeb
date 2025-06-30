@@ -1,7 +1,3 @@
-import logging
-from tokenize import triple_quoted
-
-from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import get_object_or_404
 
@@ -145,8 +141,6 @@ def assessment_template_create_update(request):
         serializer = AssessmentTemplateSerializer(template, data=request.data)
 
     if serializer.is_valid():
-
-
         serializer.save()
         return Response(serializer.data,
                         status=status.HTTP_201_CREATED if request.method == 'POST' else status.HTTP_200_OK)
@@ -290,6 +284,12 @@ class QuestionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
 
 
+from collections import defaultdict
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import UserAssessment, AnswerOptionSet
+
+
 @api_view(['GET'])
 def assessment_analysis(request, user_assessment_id):
     try:
@@ -297,37 +297,62 @@ def assessment_analysis(request, user_assessment_id):
     except UserAssessment.DoesNotExist:
         return Response({'error': 'UserAssessment no encontrado'}, status=404)
 
-    # Obtener respuestas relacionadas con la pregunta y opción seleccionada
-    answers = ua.answers.select_related('question_template__area', 'selected_option')
+    answers = ua.answers.select_related(
+        'question_template__area',
+        'selected_option__option_set'
+    )
 
-    # Estructura para contar por área y por opción real (clave dinámica)
+    # Paso 1: Crear un mapeo de option_set_id -> {value -> label}
+    selected_options = [a.selected_option for a in answers if a.selected_option]
+    used_option_set_ids = set(opt.option_set_id for opt in selected_options)
+
+    option_set_mappings = {}
+    for option_set in AnswerOptionSet.objects.filter(id__in=used_option_set_ids).prefetch_related('options'):
+        option_set_mappings[option_set.id] = {
+            opt.value: opt.label for opt in option_set.options.all()
+        }
+
+    # Paso 2: Inicializar estructuras
     area_stats = defaultdict(lambda: defaultdict(int))
-
     total_controls = 0
     total_fully_compliant = 0
 
     for answer in answers:
         area_name = answer.question_template.area.name
-        selected = answer.selected_option.value if answer.selected_option else 'N/A'
 
-        area_stats[area_name][selected] += 1
+        if answer.selected_option:
+            raw_value = answer.selected_option.value
+            option_set_id = answer.selected_option.option_set_id
+            label = option_set_mappings.get(option_set_id, {}).get(raw_value, raw_value)
+        else:
+            raw_value = 'na'
+            label = 'N/A'
+
+        area_stats[area_name][label] += 1
         total_controls += 1
-        # Consideramos como "fully compliant" las respuestas 'yes' o 'Sí' (puedes adaptar)
-        if selected.lower() in ['yes', 'sí', 'si']:
+
+        if raw_value.lower() in ['yes', 'sí', 'si']:
             total_fully_compliant += 1
 
-    # Preparar datos para gráfico de barras con claves dinámicas
+    # Paso 3: Preparar datos para gráfico de barras
     bar_chart_data = []
     for area, counts in area_stats.items():
         entry = {'area': area}
-        entry.update(counts)  # Añade todas las respuestas con sus conteos
+        entry.update(counts)
         bar_chart_data.append(entry)
 
-    # Preparar datos para gráfico de araña con porcentaje de "sí" o "yes"
+    # Paso 4: Determinar qué labels representan "yes"
+    yes_labels = set()
+    for mapping in option_set_mappings.values():
+        for value, label in mapping.items():
+            if value.lower() in ['yes', 'sí', 'si']:
+                yes_labels.add(label)
+
+    # Paso 5: Preparar datos para gráfico de araña
     spider_chart_data = []
     for area, counts in area_stats.items():
         total_area = sum(counts.values())
-        yes_count = counts.get('Sí', 0) + counts.get('yes', 0) + counts.get('si', 0)
+        yes_count = sum(count for label, count in counts.items() if label in yes_labels)
         porcentaje = (yes_count / total_area * 100) if total_area else 0
         spider_chart_data.append({
             'area': area,
@@ -345,10 +370,12 @@ def assessment_analysis(request, user_assessment_id):
         'spider': spider_chart_data,
     })
 
+
 class AnswerOptionSetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AnswerOptionSet.objects.all()
     serializer_class = AnswerOptionSetSerializer
     permission_classes = [IsAuthenticated]
+
 
 class QuestionAreaListCreateView(generics.ListCreateAPIView):
     queryset = QuestionArea.objects.all()

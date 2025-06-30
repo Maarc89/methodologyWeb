@@ -12,12 +12,17 @@ COPY . .
 EXPOSE 5173
 
 # Producción
+
 #FROM node:20
 
 #WORKDIR /app
 
+#COPY package.json package-lock.json* ./
+
+#RUN npm install
+
 #COPY . .
 
-#RUN npm install && npm run build
+#RUN npm run build
 
 

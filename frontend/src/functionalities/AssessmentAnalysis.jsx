@@ -8,25 +8,83 @@ import {
 const COLORS = ['#4caf50', '#ff9800', '#f44336', '#9e9e9e', '#2196f3', '#9c27b0'];
 const PIE_COLORS = ['#4caf50', '#f44336'];
 
+// Etiquetas personalizadas para PieChart
+const renderCustomizedLabel = ({
+                                   cx, cy, midAngle, innerRadius, outerRadius, percent,
+                               }) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+        <text
+            x={x}
+            y={y}
+            fill="white"
+            textAnchor={x > cx ? 'start' : 'end'}
+            dominantBaseline="central"
+            fontWeight="bold"
+            fontSize={14}
+        >
+            {`${(percent * 100).toFixed(0)}%`}
+        </text>
+    );
+};
+
+// Tooltip personalizado para BarChart
+const CustomTooltip = ({active, payload, label}) => {
+    if (active && payload && payload.length) {
+        return (
+            <div style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                padding: '8px 12px',
+                borderRadius: 6,
+                color: '#fff',
+                fontSize: 14,
+            }}>
+                <p><strong>{label}</strong></p>
+                {payload.map((entry, index) => (
+                    <p key={`item-${index}`} style={{color: entry.fill}}>
+                        {`${entry.name}: ${entry.value}`}
+                    </p>
+                ))}
+            </div>
+        );
+    }
+    return null;
+};
+
+// Tick personalizado para XAxis del BarChart
+const CustomizedAxisTick = ({x, y, payload}) => (
+    <text
+        x={x}
+        y={y + 15}
+        textAnchor="middle"
+        fill="#333"
+        fontWeight="bold"
+        fontSize={13}
+    >
+        {payload.value}
+    </text>
+);
+
 const AssessmentAnalysis = ({userAssessmentId}) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
-        const token = localStorage.getItem('token');  // Ajusta si guardas el token en otro sitio
-
+        const token = localStorage.getItem('token');
         fetch(`${API_BASE}/user-assessments/${userAssessmentId}/analysis/`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token ${token}`,  // O usa `Bearer` si tu backend lo espera así
+                'Authorization': `Token ${token}`,
             },
         })
             .then(res => {
-                if (!res.ok) {
-                    throw new Error('No autorizado o error al cargar datos');
-                }
+                if (!res.ok) throw new Error('No autorizado o error al cargar datos');
                 return res.json();
             })
             .then(json => {
@@ -39,17 +97,14 @@ const AssessmentAnalysis = ({userAssessmentId}) => {
             });
     }, [userAssessmentId]);
 
-
     if (loading) return <p>Cargando análisis...</p>;
     if (!data) return <p>Error cargando datos.</p>;
 
-    // Pie chart data
     const pieData = [
         {name: 'Cumplimiento total (Sí)', value: data.pie.percent_fully_compliant},
         {name: 'Otros', value: 100 - data.pie.percent_fully_compliant},
     ];
 
-    // Bar chart keys dinámicos
     const allKeys = new Set();
     data.bar.forEach(entry => {
         Object.keys(entry).forEach(key => {
@@ -58,27 +113,23 @@ const AssessmentAnalysis = ({userAssessmentId}) => {
     });
     const keys = Array.from(allKeys);
 
-    // Spider chart data
     const spiderData = data.spider;
 
-    console.log("data.pie:", data.pie);
-    console.log("data.bar:", data.bar);
-    console.log("data.spider:", data.spider);
-
     return (
-        <div>
-
-            <h3>Porcentaje de controles con cumplimiento total</h3>
-            <PieChart width={300} height={300}>
+        <div style={{maxWidth: 700, margin: '0 auto', fontFamily: 'Arial, sans-serif'}}>
+            <h3 style={{textAlign: 'center'}}>Porcentaje de controles con cumplimiento total</h3>
+            <PieChart width={300} height={300} style={{display: 'block', margin: '0 auto'}}>
                 <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
                     outerRadius={80}
-                    fill="#8884d8"
                     dataKey="value"
-                    label
+                    label={renderCustomizedLabel}
+                    labelLine={false}
+                    isAnimationActive={true}
+                    animationDuration={1000}
                 >
                     {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]}/>
@@ -86,28 +137,60 @@ const AssessmentAnalysis = ({userAssessmentId}) => {
                 </Pie>
             </PieChart>
 
-            <h3>Controles evaluados por área y estado</h3>
+            <h3 style={{textAlign: 'center', marginTop: 40}}>Controles evaluados por área y estado</h3>
             <BarChart
                 width={600}
                 height={300}
                 data={data.bar}
-                margin={{top: 20, right: 30, left: 20, bottom: 5}}
+                margin={{top: 20, right: 30, left: 20, bottom: 40}}
+                style={{margin: '0 auto', display: 'block'}}
             >
-                <XAxis dataKey="area"/>
+                <XAxis dataKey="area" tick={<CustomizedAxisTick/>} interval={0}/>
                 <YAxis/>
-                <Tooltip/>
-                <Legend/>
+                <Tooltip content={<CustomTooltip/>}/>
+                <Legend
+                    verticalAlign="top"
+                    wrapperStyle={{fontSize: 14, fontWeight: 'bold'}}
+                />
                 {keys.map((key, index) => (
-                    <Bar key={key} dataKey={key} stackId="a" fill={COLORS[index % COLORS.length]}/>
+                    <Bar
+                        key={key}
+                        dataKey={key}
+                        stackId="a"
+                        fill={COLORS[index % COLORS.length]}
+                        isAnimationActive={true}
+                        animationDuration={1500}
+                    />
                 ))}
             </BarChart>
 
-            <h3>Porcentaje de controles totalmente cumplidos por área</h3>
-            <RadarChart cx={300} cy={250} outerRadius={150} width={600} height={500} data={spiderData}>
+            <h3 style={{textAlign: 'center', marginTop: 40}}>Porcentaje de controles totalmente cumplidos por área</h3>
+            <RadarChart
+                cx={300}
+                cy={250}
+                outerRadius={150}
+                width={600}
+                height={500}
+                data={spiderData}
+                style={{margin: '0 auto', display: 'block'}}
+            >
                 <PolarGrid/>
-                <PolarAngleAxis dataKey="area"/>
+                <PolarAngleAxis dataKey="area" tick={{fontWeight: 'bold', fill: '#333'}}/>
                 <PolarRadiusAxis angle={30} domain={[0, 100]}/>
-                <Radar name="Cumplimiento (%)" dataKey="porcentaje" stroke="#4caf50" fill="#4caf50" fillOpacity={0.6}/>
+                <Radar
+                    name="Cumplimiento (%)"
+                    dataKey="porcentaje"
+                    stroke="#4caf50"
+                    fill="#4caf50"
+                    fillOpacity={0.6}
+                    strokeWidth={3}
+                    isAnimationActive={true}
+                    animationDuration={1200}
+                />
+                <Legend
+                    verticalAlign="top"
+                    wrapperStyle={{fontSize: 14, fontWeight: 'bold'}}
+                />
             </RadarChart>
         </div>
     );
