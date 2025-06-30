@@ -52,3 +52,4 @@ class UserAnswer(models.Model):
     user_assessment = models.ForeignKey(UserAssessment, related_name='answers', on_delete=models.CASCADE)
     question_template = models.ForeignKey(QuestionTemplate, on_delete=models.CASCADE)
     selected_option = models.ForeignKey(AnswerOption, null=True, blank=True, on_delete=models.SET_NULL)
+    marked_for_review = models.BooleanField(default=False)

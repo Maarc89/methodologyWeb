@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import ImportAssessment from '../functionalities/ImportAssessment.jsx';
+import {Info, Play} from 'lucide-react';
 
 const Home = () => {
     const [assessments, setAssessments] = useState([]);
@@ -8,6 +9,7 @@ const Home = () => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [names, setNames] = useState({});
     const [editingName, setEditingName] = useState({});
+    const [showInfo, setShowInfo] = useState({});
     const navigate = useNavigate();
     const API_BASE = 'http://localhost:8001/api';
     const token = localStorage.getItem('token');
@@ -51,12 +53,10 @@ const Home = () => {
         setNames((prev) => ({...prev, [id]: value}));
     };
 
-    // Este método solo activa el input para el id seleccionado
     const handleStartClick = (id) => {
         setEditingName((prev) => ({...prev, [id]: true}));
     };
 
-    // Este método se llama para confirmar y enviar el formulario
     const handleConfirmStart = async (id) => {
         const name = names[id]?.trim();
         if (!token) {
@@ -115,9 +115,26 @@ const Home = () => {
                 delete copy[id];
                 return copy;
             });
+            setShowInfo((prev) => {
+                const copy = {...prev};
+                delete copy[id];
+                return copy;
+            });
         } else {
             alert('Error al borrar el assessment');
         }
+    };
+
+    const toggleInfo = (id) => {
+        setShowInfo((prev) => ({...prev, [id]: !prev[id]}));
+    };
+
+    const handleCancelEdit = (id) => {
+        setEditingName((prev) => {
+            const copy = {...prev};
+            delete copy[id];
+            return copy;
+        });
     };
 
     const handleAssessmentImported = (newAssessment) => {
@@ -129,11 +146,11 @@ const Home = () => {
         return <div className="text-center mt-8">No hay assessments disponibles en este momento.</div>;
 
     return (
-        <div className="container-main">
-            <div className="header text-center mb-6">
-                <h1 className="title">Evaluaciones</h1>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+            <header className="mb-8 text-center">
+                <h1 className="text-4xl font-bold mb-4 text-gray-800">Evaluaciones</h1>
                 {isAdmin && (
-                    <div className="admin-actions flex justify-center items-center space-x-4 mt-4 mb-6">
+                    <div className="flex justify-center items-center space-x-4">
                         <button
                             onClick={() => navigate('/create-assessment')}
                             className="btn-secondary"
@@ -147,52 +164,61 @@ const Home = () => {
                         />
                     </div>
                 )}
-            </div>
+            </header>
 
-            {/* Grid de assessments */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
                 {assessments.map((a) => (
                     <div
                         key={a.id}
-                        className="p-4 border rounded shadow flex flex-col space-y-2 bg-white"
+                        className="p-6 border rounded shadow bg-white flex flex-col justify-between"
                     >
-                        <div>
-                            <h2 className="font-semibold text-xl text-title">{a.title}</h2>
-                            <p className="text-sm text-gray-600 mb-2">{a.description}</p>
-                        </div>
+                        <h2 className="font-semibold text-2xl text-center mb-4 text-gray-900">{a.title}</h2>
 
+                        {/* Botones o input para nombre */}
                         {!editingName[a.id] ? (
-                            isAdmin ? (
-                                <div className="flex gap-2 flex-wrap">
+                            <>
+                                <div className="flex justify-center items-center gap-3 flex-wrap mb-3">
                                     <button
-                                        className="btn-primary"
+                                        className="btn-primary w-10 h-10 flex items-center justify-center"
                                         onClick={() => handleStartClick(a.id)}
+                                        aria-label="Empezar"
                                     >
-                                        Empezar
+                                        <Play className="w-5 h-5"/>
                                     </button>
+
+                                    {isAdmin && (
+                                        <>
+                                            <button
+                                                className="btn-secondary"
+                                                onClick={() => handleEdit(a.id)}
+                                            >
+                                                Editar
+                                            </button>
+                                            <button
+                                                className="btn-delete"
+                                                onClick={() => handleDelete(a.id)}
+                                            >
+                                                Borrar
+                                            </button>
+                                        </>
+                                    )}
+
                                     <button
-                                        className="btn-secondary"
-                                        onClick={() => handleEdit(a.id)}
+                                        className="btn-info rounded-full w-10 h-10 flex items-center justify-center"
+                                        onClick={() => toggleInfo(a.id)}
+                                        aria-label="Mostrar información"
                                     >
-                                        Editar
-                                    </button>
-                                    <button
-                                        className="btn-delete"
-                                        onClick={() => handleDelete(a.id)}
-                                    >
-                                        Borrar
+                                        <Info className="w-5 h-5"/>
                                     </button>
                                 </div>
-                            ) : (
-                                <div className="flex">
-                                    <button
-                                        className="btn-primary mt-2"
-                                        onClick={() => handleStartClick(a.id)}
-                                    >
-                                        Empezar
-                                    </button>
-                                </div>
-                            )
+
+                                {/* Mostrar info si está activo */}
+                                {showInfo[a.id] && (
+                                    <div className="bg-gray-100 p-4 rounded border border-gray-300 mt-2">
+                                        <p className="mb-4 text-gray-700 whitespace-pre-wrap">{a.description || 'Sin descripción'}</p>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <>
                                 <input
@@ -200,9 +226,9 @@ const Home = () => {
                                     placeholder="Nombre para tu assessment"
                                     value={names[a.id] || ''}
                                     onChange={(e) => handleNameChange(a.id, e.target.value)}
-                                    className="input-name"
+                                    className="input-name w-full mb-3 px-3 py-2 border rounded"
                                 />
-                                <div className="flex gap-2 flex-wrap">
+                                <div className="flex justify-center gap-3 flex-wrap">
                                     <button
                                         className="btn-confirm"
                                         onClick={() => handleConfirmStart(a.id)}
@@ -212,13 +238,7 @@ const Home = () => {
                                     </button>
                                     <button
                                         className="btn-cancel"
-                                        onClick={() =>
-                                            setEditingName((prev) => {
-                                                const copy = {...prev};
-                                                delete copy[a.id];
-                                                return copy;
-                                            })
-                                        }
+                                        onClick={() => handleCancelEdit(a.id)}
                                     >
                                         Cancelar
                                     </button>

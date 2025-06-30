@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {Play, Trash2} from 'lucide-react';
 
 const MyAssessments = () => {
     const [userAssessments, setUserAssessments] = useState([]);
@@ -55,7 +56,8 @@ const MyAssessments = () => {
                                 Continuar
                             </button>
                             <button
-                                className="btn-delete"
+                                className="btn-delete w-10 h-10 flex items-center justify-center"
+
                                 onClick={() => {
                                     if (window.confirm("¿Estás seguro de que quieres borrar esta evaluación?")) {
                                         fetch(`http://localhost:8001/api/user-assessments/${ua.id}/delete/`, {
@@ -73,8 +75,9 @@ const MyAssessments = () => {
                                             });
                                     }
                                 }}
+                                aria-label="Borrar"
                             >
-                                Borrar
+                                <Trash2 className="w-5 h-5"/>
                             </button>
                         </div>
                     </li>

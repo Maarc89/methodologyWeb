@@ -3,77 +3,83 @@
 @tailwind utilities;
 
 body {
-  @apply bg-gray-50 text-gray-900 font-trebuchet;
+    @apply bg-gray-50 text-gray-900 font-trebuchet;
 }
 
 .container-main {
-  @apply max-w-4xl mx-auto mt-10;
+    @apply max-w-4xl mx-auto mt-10;
 }
 
 .title {
-  @apply text-2xl font-bold text-center;
+    @apply text-2xl font-bold text-center;
 }
 
 .container-buttons {
-  @apply flex space-x-2 mt-2;
+    @apply flex space-x-2 mt-2;
 }
 
 .btn-primary {
-  @apply px-4 py-2 bg-blau text-white rounded hover:bg-blauAmagat;
+    @apply bg-blau text-white rounded-full hover:bg-blauAmagat;
 }
 
 .btn-secondary {
-  @apply px-4 py-2 bg-malva text-white rounded hover:bg-porpra;
+    @apply px-4 py-2 bg-malva text-white rounded hover:bg-porpra;
 }
 
+.btn-info {
+    @apply bg-fucsia text-white hover:bg-fuchsia-700;
+}
+
+
 .btn-delete {
-  @apply px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700;
+    @apply  bg-red-600 text-white rounded-full hover:bg-red-700;
 }
 
 .btn-confirm {
-  @apply px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300;
+    @apply px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300;
 }
 
 .btn-cancel {
-  @apply px-4 py-2 bg-gris60 text-white rounded hover:bg-gris90;
+    @apply px-4 py-2 bg-gris60 text-white rounded hover:bg-gris90;
 }
 
 .input-name {
-  @apply border p-2 rounded w-full;
+    @apply border p-2 rounded w-full;
 }
 
 /* Header.jsx */
 
 .logo-image {
-  height: 40px;
-  width: auto;
+    height: 40px;
+    width: auto;
 }
+
 .header-container {
-  @apply bg-white shadow p-4 flex justify-between items-center;
+    @apply bg-white shadow p-4 flex justify-between items-center;
 }
 
 .logo-text {
-  @apply text-xl font-bold text-lila;
+    @apply text-xl font-bold text-lila;
 }
 
 .nav-container {
-  @apply space-x-4 relative;
+    @apply space-x-4 relative;
 }
 
 .btn-profile {
-  @apply text-blau hover:underline focus:outline-none;
+    @apply text-blau hover:underline focus:outline-none;
 }
 
 .profile-icon {
-  height: 40px;
-  width: auto;
+    height: 40px;
+    width: auto;
 }
 
 .dropdown-menu {
-  @apply absolute right-0 mt-2 w-56 bg-white border border-gray-300 rounded-xl shadow-lg z-50;
+    @apply absolute right-0 mt-2 w-56 bg-white border border-gray-300 rounded-xl shadow-lg z-50;
 }
 
 .dropdown-item {
-  @apply block w-full px-4 py-2 text-sm font-medium text-gray-800 hover:bg-blue-50 hover:text-blau;
+    @apply block w-full px-4 py-2 text-sm font-medium text-gray-800 hover:bg-blue-50 hover:text-blau;
 }
 
