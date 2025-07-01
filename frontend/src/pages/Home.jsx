@@ -1,7 +1,8 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import ImportAssessment from '../functionalities/ImportAssessment.jsx';
-import {Info, Play} from 'lucide-react';
+import {Info, Play, Trash2} from 'lucide-react';
+import {motion, AnimatePresence} from 'framer-motion';
 
 const Home = () => {
     const [assessments, setAssessments] = useState([]);
@@ -195,10 +196,11 @@ const Home = () => {
                                                 Editar
                                             </button>
                                             <button
-                                                className="btn-delete"
+                                                className="btn-delete w-10 h-10 flex items-center justify-center"
                                                 onClick={() => handleDelete(a.id)}
+                                                aria-label="Borrar"
                                             >
-                                                Borrar
+                                                <Trash2 className="w-5 h-5"/>
                                             </button>
                                         </>
                                     )}
@@ -213,11 +215,23 @@ const Home = () => {
                                 </div>
 
                                 {/* Mostrar info si está activo */}
-                                {showInfo[a.id] && (
-                                    <div className="bg-gray-100 p-4 rounded border border-gray-300 mt-2">
-                                        <p className="mb-4 text-gray-700 whitespace-pre-wrap">{a.description || 'Sin descripción'}</p>
-                                    </div>
-                                )}
+                                <AnimatePresence initial={false}>
+                                    {showInfo[a.id] && (
+                                        <motion.div
+                                            key="info"
+                                            initial={{opacity: 0, scaleY: 0}}
+                                            animate={{opacity: 1, scaleY: 1}}
+                                            exit={{opacity: 0, scaleY: 0}}
+                                            transition={{duration: 0.3, ease: "easeInOut"}}
+                                            style={{originY: 0}}  // hace que se expanda desde arriba
+                                            className="bg-gray-100 p-4 rounded border border-gray-300 mt-2"
+                                        >
+                                            <p className="mb-4 text-gray-700 whitespace-pre-wrap">
+                                                {a.description || 'Sin descripción'}
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </>
                         ) : (
                             <>

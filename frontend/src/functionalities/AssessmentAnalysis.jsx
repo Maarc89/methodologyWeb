@@ -10,10 +10,10 @@ const PIE_COLORS = ['#4caf50', '#f44336'];
 
 // Etiquetas personalizadas para PieChart
 const renderCustomizedLabel = ({
-                                   cx, cy, midAngle, innerRadius, outerRadius, percent,
+                                   cx, cy, midAngle, outerRadius, percent
                                }) => {
     const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const radius = outerRadius + 20; // Más afuera
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -21,7 +21,7 @@ const renderCustomizedLabel = ({
         <text
             x={x}
             y={y}
-            fill="white"
+            fill="#333"
             textAnchor={x > cx ? 'start' : 'end'}
             dominantBaseline="central"
             fontWeight="bold"
@@ -55,15 +55,17 @@ const CustomTooltip = ({active, payload, label}) => {
     return null;
 };
 
-// Tick personalizado para XAxis del BarChart
+// Tick personalizado para XAxis del BarChart con rotación
 const CustomizedAxisTick = ({x, y, payload}) => (
     <text
         x={x}
-        y={y + 15}
-        textAnchor="middle"
+        y={y}
+        dy={10}
+        textAnchor="end"
         fill="#333"
         fontWeight="bold"
-        fontSize={13}
+        fontSize={12}
+        transform={`rotate(-20, ${x}, ${y})`}
     >
         {payload.value}
     </text>
@@ -142,7 +144,7 @@ const AssessmentAnalysis = ({userAssessmentId}) => {
                 width={600}
                 height={300}
                 data={data.bar}
-                margin={{top: 20, right: 30, left: 20, bottom: 40}}
+                margin={{top: 20, right: 30, left: 20, bottom: 80}} // más espacio abajo
                 style={{margin: '0 auto', display: 'block'}}
             >
                 <XAxis dataKey="area" tick={<CustomizedAxisTick/>} interval={0}/>
