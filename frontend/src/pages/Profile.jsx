@@ -15,7 +15,7 @@ const Profile = ({onLogout}) => {
             return;
         }
 
-        fetch('http://localhost:8001/api/auth/user/', {
+        fetch('./api/auth/user/', {
             headers: {
                 Authorization: `Token ${token}`,
             },
