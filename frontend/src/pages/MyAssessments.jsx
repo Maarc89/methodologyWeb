@@ -1,12 +1,14 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Play, Trash2} from 'lucide-react';
+import {downloadCSV} from "../functionalities/ExportAssessment.jsx";
 
 const MyAssessments = () => {
     const [userAssessments, setUserAssessments] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
+    const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
         if (!token) {
@@ -57,7 +59,6 @@ const MyAssessments = () => {
                             </button>
                             <button
                                 className="btn-delete w-10 h-10 flex items-center justify-center"
-
                                 onClick={() => {
                                     if (window.confirm("¿Estás seguro de que quieres borrar esta evaluación?")) {
                                         fetch(`http://localhost:8001/api/user-assessments/${ua.id}/delete/`, {
@@ -79,6 +80,20 @@ const MyAssessments = () => {
                             >
                                 <Trash2 className="w-5 h-5"/>
                             </button>
+
+                            {ua.completed && (
+                                <button
+                                    onClick={() =>
+                                        downloadCSV(
+                                            `${API_BASE}/export-user-assessment-csv/${ua.id}/`,
+                                            `assessment_${ua.id}.csv`
+                                        )
+                                    }
+                                    className="btn-confirm"
+                                >
+                                    Exportar en formato CSV
+                                </button>
+                            )}
                         </div>
                     </li>
                 ))}

@@ -264,7 +264,7 @@ const UserAssessmentDetail = () => {
                                 `assessment_${id}.csv`
                             )
                         }
-                        className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        className="btn-confirm"
                     >
                         Exportar en formato CSV
                     </button>
