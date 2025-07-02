@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import AssessmentAnalysis from '../functionalities/AssessmentAnalysis.jsx';
+import {downloadCSV} from "../functionalities/ExportAssessment.jsx";
 
 const UserAssessmentDetail = () => {
     const {id} = useParams();
@@ -256,6 +257,17 @@ const UserAssessmentDetail = () => {
                     ) : (
                         <div className="mt-4">Cargando análisis...</div>
                     )}
+                    <button
+                        onClick={() =>
+                            downloadCSV(
+                                `${API_BASE}/export-user-assessment-csv/${id}/`,
+                                `assessment_${id}.csv`
+                            )
+                        }
+                        className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    >
+                        Exportar en formato CSV
+                    </button>
                 </>
             )}
         </div>

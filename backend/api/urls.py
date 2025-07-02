@@ -28,6 +28,7 @@ urlpatterns = [
     path('user-assessments/<int:pk>/finalize/', FinalizeUserAssessmentView.as_view(), name='finalize-assessment'),
     path('user-assessments/<int:pk>/delete/', delete_user_assessment, name='delete-assessment'),
     path('user-assessments/<int:user_assessment_id>/analysis/', assessment_analysis, name='assessment-analysis'),
+    path('export-user-assessment-csv/<int:assessment_id>/', ExportUserAssessmentCSV.as_view(), name='export_user_assessment_csv'),
 
     # Auth
     path('auth/login/', obtain_auth_token, name='login'),

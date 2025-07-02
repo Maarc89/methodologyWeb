@@ -1,4 +1,7 @@
+import csv, codecs
+
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
 from rest_framework import generics, status, viewsets
@@ -7,6 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from django.http import HttpResponse
 
 from collections import defaultdict
 
@@ -380,3 +385,39 @@ class AnswerOptionSetViewSet(viewsets.ReadOnlyModelViewSet):
 class QuestionAreaListCreateView(generics.ListCreateAPIView):
     queryset = QuestionArea.objects.all()
     serializer_class = QuestionAreaSerializer
+
+
+class ExportUserAssessmentCSV(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, assessment_id):
+        # Busca el assessment del usuario autenticado
+        user_assessment = get_object_or_404(UserAssessment, pk=assessment_id, user=request.user)
+
+        # Prepara la respuesta CSV con encabezados adecuados
+        response = HttpResponse(
+            content_type='text/csv',
+            headers={'Content-Disposition': f'attachment; filename="assessment_{assessment_id}.csv"'},
+        )
+        # Escribe el BOM UTF-8 para que Excel reconozca bien la codificación
+        response.write(codecs.BOM_UTF8)
+
+        writer = csv.writer(response)
+
+        # Escribe cabeceras
+        writer.writerow(['Assessment Name', user_assessment.name])
+        writer.writerow(['Template', user_assessment.assessment_template.title])
+        writer.writerow(['Date', user_assessment.started_at.strftime("%Y-%m-%d %H:%M")])
+        writer.writerow([])  # línea vacía
+
+        # Escribe columnas
+        writer.writerow(['Question', 'Selected Option', 'Marked for Review'])
+
+        # Escribe cada respuesta
+        for answer in user_assessment.answers.select_related('question_template', 'selected_option'):
+            question_text = answer.question_template.text
+            selected_label = answer.selected_option.label if answer.selected_option else ''
+            marked = 'Yes' if answer.marked_for_review else 'No'
+            writer.writerow([question_text, selected_label, marked])
+
+        return response
