@@ -7,12 +7,15 @@ services:
     # Para desarrollo
     command: python manage.py runserver 0.0.0.0:8000
     # Para producción
-    # command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
+    # command: >
+    #      sh -c "python manage.py collectstatic --noinput &&
+    #        gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile -"
     volumes:
       - ./backend:/app/backend
     # En desarrollo Django gestiona los ficheros estáticos
     #  - static_volume:/app/staticfiles
     working_dir: /app/backend
+    # Comentarlo para producción
     ports:
       - "8001:8000"
     env_file:
@@ -28,11 +31,14 @@ services:
     container_name: vite_app
     volumes:
       - ./frontend:/app/frontend
+      # Descomentarlo para producción
+      # - ./frontend/dist:/app/frontend/dist
     working_dir: /app/frontend
     # Para desarrollo
     command: sh -c "npm install && npm run dev -- --host"
     # Para producción
-    # command: sh -c "npm install && npm run build && npm run preview -- --port 5173 --host"
+    # command: sh -c "npm install && npm run build"
+    # Comentarlo en producción
     ports:
       - "5173:5173"
 
@@ -64,4 +70,6 @@ services:
 
 volumes:
   pgdata:
+    # Descomentarlo en producción
   # static_volume:
+  # frontend_build:

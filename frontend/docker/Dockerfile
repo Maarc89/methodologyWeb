@@ -13,16 +13,16 @@ EXPOSE 5173
 
 # Producción
 
-#FROM node:20
+# FROM node:20
 
-#WORKDIR /app
+# WORKDIR /app
 
-#COPY package.json package-lock.json* ./
+# COPY package.json package-lock.json* ./
 
-#RUN npm install
+# RUN npm install
 
-#COPY . .
+# COPY . .
 
-#RUN npm run build
+# RUN npm run build
 
-
+# EXPOSE 5173
