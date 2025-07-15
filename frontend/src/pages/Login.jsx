@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {useNavigate, Link} from 'react-router-dom';
+import {API_BASE} from "../config.js";
 
 const Login = ({onLoginSuccess}) => {
     const [credentials, setCredentials] = useState({username: '', password: ''});
@@ -7,7 +8,7 @@ const Login = ({onLoginSuccess}) => {
 
     const handleSubmit = e => {
         e.preventDefault();
-        fetch('http://localhost:8001/api/auth/login/', {
+        fetch(`${API_BASE}/auth/login/`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(credentials),

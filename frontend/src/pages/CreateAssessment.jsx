@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {API_BASE} from "../config.js";
 
 const CreateAssessment = () => {
     const [title, setTitle] = useState('');
@@ -15,7 +16,6 @@ const CreateAssessment = () => {
 
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
-    const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
         const fetchQuestions = async () => {

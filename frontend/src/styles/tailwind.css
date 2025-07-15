@@ -26,6 +26,10 @@ body {
     @apply px-4 py-2 bg-malva text-white rounded hover:bg-porpra;
 }
 
+.btn-edit {
+    @apply  bg-malva text-white rounded-full hover:bg-porpra;
+}
+
 .btn-info {
     @apply bg-fucsia text-white hover:bg-fuchsia-700;
 }

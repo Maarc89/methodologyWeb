@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {useNavigate, Link} from 'react-router-dom';
+import {API_BASE} from "../config.js";
 
 const Register = ({onRegisterSuccess}) => {
     const [credentials, setCredentials] = useState({
@@ -11,7 +12,7 @@ const Register = ({onRegisterSuccess}) => {
 
     const handleSubmit = e => {
         e.preventDefault();
-        fetch('http://localhost:8001/api/auth/register/', {
+        fetch(`${API_BASE}/api/auth/register/`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(credentials),

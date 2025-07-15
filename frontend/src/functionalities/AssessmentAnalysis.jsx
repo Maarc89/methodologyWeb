@@ -4,6 +4,7 @@ import {
     BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
     Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
+import {API_BASE} from "../config.js";
 
 const COLORS = ['#4caf50', '#ff9800', '#f44336', '#9e9e9e', '#2196f3', '#9c27b0'];
 const PIE_COLORS = ['#4caf50', '#f44336'];
@@ -74,7 +75,6 @@ const CustomizedAxisTick = ({x, y, payload}) => (
 const AssessmentAnalysis = ({userAssessmentId}) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
         const token = localStorage.getItem('token');

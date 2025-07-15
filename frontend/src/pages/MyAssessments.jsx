@@ -2,13 +2,13 @@ import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Play, Trash2} from 'lucide-react';
 import {downloadCSV} from "../functionalities/ExportAssessment.jsx";
+import {API_BASE} from "../config.js";
 
 const MyAssessments = () => {
     const [userAssessments, setUserAssessments] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
-    const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
         if (!token) {
@@ -16,7 +16,7 @@ const MyAssessments = () => {
             return;
         }
 
-        fetch('http://localhost:8001/api/user-assessments/', {
+        fetch(`${API_BASE}/user-assessments/`, {
             headers: {Authorization: `Token ${token}`},
         })
             .then((res) => res.json())
@@ -26,7 +26,7 @@ const MyAssessments = () => {
             });
     }, [navigate, token]);
 
-    if (loading) return <div>Cargando tus assessments...</div>;
+    if (loading) return <div>Cargando tus evaluaciones...</div>;
 
     // Función para formatear fecha en formato legible
     const formatDate = (dateStr) => {
@@ -57,11 +57,25 @@ const MyAssessments = () => {
                             >
                                 Continuar
                             </button>
+
+                            {ua.completed && (
+                                <button
+                                    onClick={() =>
+                                        downloadCSV(
+                                            `${API_BASE}/export-user-assessment-csv/${ua.id}/`,
+                                            `assessment_${ua.id}.csv`
+                                        )
+                                    }
+                                    className="btn-confirm"
+                                >
+                                    Exportar en formato CSV
+                                </button>
+                            )}
                             <button
                                 className="btn-delete w-10 h-10 flex items-center justify-center"
                                 onClick={() => {
                                     if (window.confirm("¿Estás seguro de que quieres borrar esta evaluación?")) {
-                                        fetch(`http://localhost:8001/api/user-assessments/${ua.id}/delete/`, {
+                                        fetch(`./api/user-assessments/${ua.id}/delete/`, {
                                             method: 'DELETE',
                                             headers: {
                                                 Authorization: `Token ${token}`,
@@ -80,20 +94,6 @@ const MyAssessments = () => {
                             >
                                 <Trash2 className="w-5 h-5"/>
                             </button>
-
-                            {ua.completed && (
-                                <button
-                                    onClick={() =>
-                                        downloadCSV(
-                                            `${API_BASE}/export-user-assessment-csv/${ua.id}/`,
-                                            `assessment_${ua.id}.csv`
-                                        )
-                                    }
-                                    className="btn-confirm"
-                                >
-                                    Exportar en formato CSV
-                                </button>
-                            )}
                         </div>
                     </li>
                 ))}

@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import axios from 'axios';
+import {API_BASE} from "../config.js";
 
 const Settings = () => {
     const [email, setEmail] = useState('');
@@ -33,7 +34,7 @@ const Settings = () => {
     const handleEmailUpdate = async () => {
         const token = localStorage.getItem('token');
         try {
-            await axios.put('http://localhost:8001/api/auth/settings/update/', {
+            await axios.put(`${API_BASE}/api/auth/settings/update/`, {
                 email: newEmail,
             }, {
                 headers: {Authorization: `Token ${token}`}
@@ -51,7 +52,7 @@ const Settings = () => {
         e.preventDefault();
         const token = localStorage.getItem('token');
         try {
-            await axios.put('http://localhost:8001/api/auth/settings/update/', {
+            await axios.put(`${API_BASE}/api/auth/settings/update/`, {
                 password: currentPassword,
                 new_password: newPassword,
             }, {

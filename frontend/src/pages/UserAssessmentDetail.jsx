@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import AssessmentAnalysis from '../functionalities/AssessmentAnalysis.jsx';
 import {downloadCSV} from "../functionalities/ExportAssessment.jsx";
@@ -31,11 +31,11 @@ const UserAssessmentDetail = () => {
             headers: {Authorization: `Token ${token}`},
         })
             .then(res => {
-                if (!res.ok) throw new Error(`Error al cargar assessment: ${res.statusText}`);
+                if (!res.ok) throw new Error(`Error al cargar la evaluación: ${res.statusText}`);
                 return res.json();
             })
             .then(async data => {
-                console.log('Assessment recibido:', data);
+                console.log('Evaluación recibida:', data);
                 setUserAssessment(data);
 
                 if (data.completed) {
@@ -61,7 +61,7 @@ const UserAssessmentDetail = () => {
             })
             .catch(err => {
                 console.error(err);
-                setErrorMsg('No se pudo cargar el assessment.');
+                setErrorMsg('No se pudo cargar la evaluación.');
                 setLoading(false);
             });
     }, [id, token]);
@@ -139,7 +139,7 @@ const UserAssessmentDetail = () => {
                 body: JSON.stringify({marked_for_review: markedForReview}) // aquí envías el estado
             });
 
-            if (!res.ok) throw new Error('Error al finalizar assessment');
+            if (!res.ok) throw new Error('Error al finalizar la evaluación');
 
             setFinalized(true);
 
@@ -154,30 +154,30 @@ const UserAssessmentDetail = () => {
             }
         } catch (err) {
             console.error(err);
-            setErrorMsg('Error al finalizar assessment');
+            setErrorMsg('Error al finalizar la evaluación');
         } finally {
             setFinalizing(false);
         }
     };
 
+    const groupedByArea = React.useMemo(() => {
+        const groups = {};
+        (userAssessment?.answers ?? []).forEach(answer => {
+            const area = answer.question_template.area || 'Sin área';
+            if (!groups[area]) groups[area] = [];
+            groups[area].push(answer);
+        });
+        return groups;
+    }, [userAssessment]);
 
-    if (loading) return <div>Cargando assessment...</div>;
-    if (!userAssessment) return <div>No se encontró el assessment.</div>;
 
-    const groupedByArea = {};
-    (userAssessment?.answers ?? []).forEach(answer => {
-        const area = answer.question_template.area || 'Sin área';
-        if (!groupedByArea[area]) groupedByArea[area] = [];
-        groupedByArea[area].push(answer);
-    });
-
-    if (loading) return <div>Cargando assessment...</div>;
-    if (!userAssessment) return <div>No se encontró el assessment.</div>;
+    if (loading) return <div>Cargando la evaluación...</div>;
+    if (!userAssessment) return <div>No se encontró la evaluación.</div>;
 
     return (
         <div>
             <h1 className="text-2xl font-bold mb-4">
-                {userAssessment.assessment_template?.title ?? 'Assessment'}
+                {userAssessment.assessment_template?.title ?? 'Evaluación'}
             </h1>
             <p className="text-sm text-gray-600 mb-2">
                 {userAssessment.assessment_template?.description}
@@ -247,11 +247,11 @@ const UserAssessmentDetail = () => {
             ) : (
                 <>
                     <div className="mt-6 text-green-700 font-semibold">
-                        Assessment finalizado.
+                        Evaluación finalizada.
                     </div>
                     {assessmentAnalysis ? (
                         <div className="mt-4 p-4 border rounded bg-gray-100">
-                            <h2 className="text-xl font-bold mb-2">Análisis del Assessment</h2>
+                            <h2 className="text-xl font-bold mb-2">Análisis de la Evaluación</h2>
                             <AssessmentAnalysis userAssessmentId={id}/>
                         </div>
                     ) : (
@@ -264,7 +264,7 @@ const UserAssessmentDetail = () => {
                                 `assessment_${id}.csv`
                             )
                         }
-                        className="btn-confirm"
+                        className="btn-confirm mt-4"
                     >
                         Exportar en formato CSV
                     </button>

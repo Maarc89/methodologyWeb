@@ -1,7 +1,6 @@
 import {useState, useEffect} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
-
-const API_BASE = 'http://localhost:8001/api';
+import {API_BASE} from "../config.js";
 
 const EditAssessment = () => {
     const {id} = useParams();
