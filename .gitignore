@@ -1,34 +1,30 @@
+# Archivos de entorno
 .env
-node_modules/
+frontend/.env*
+backend/.env
 
 # Frontend
+node_modules/
 frontend/node_modules/
 frontend/dist/
-frontend/.env*
 frontend/.vite/
 
 # Backend
-**/__pycache__/
 *.py[cod]
-backend/*.py[cod]
+__pycache__/
+**/__pycache__/
+env/
+venv/
+.venv/
 backend/db.sqlite3
 backend/media/
 backend/staticfiles/
-backend/.env
-**/migrations/*.py[cod]
-!**/migrations/*.py
-
 
 # Ignorar archivos temporales de IDEs
 .idea/
 .vscode/
 *.log
 *.swp
-
-#  Python virtualenvs
-env/
-venv/
-.venv/
 
 # Ignorar archivos de sistema
 .DS_Store
