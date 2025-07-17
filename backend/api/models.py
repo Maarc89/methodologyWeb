@@ -19,6 +19,8 @@ class QuestionTemplate(models.Model):
     text = models.TextField()
     option_set = models.ForeignKey(AnswerOptionSet, null=True, blank=True, on_delete=models.SET_NULL)
     area = models.ForeignKey(QuestionArea, on_delete=models.PROTECT, related_name="questions")
+    nist_csf = models.TextField(blank=True, null=True)
+    ref = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.text
