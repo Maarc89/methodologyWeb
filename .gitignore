@@ -14,13 +14,16 @@ backend/db.sqlite3
 backend/media/
 backend/staticfiles/
 backend/.env
+**/migrations/__pycache__/
+**/migrations/*.py[cod]
+!**/migrations/*.py
 
 
 # Ignorar archivos temporales de IDEs
 .idea/
 .vscode/
 
-# === Python virtualenvs ===
+#  Python virtualenvs
 env/
 venv/
 .venv/
@@ -33,5 +36,3 @@ Thumbs.db
 *.log
 *.DS_Store
 *.swp
-.idea/
-.vscode/
