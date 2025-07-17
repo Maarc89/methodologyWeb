@@ -20,7 +20,8 @@ class QuestionTemplate(models.Model):
     option_set = models.ForeignKey(AnswerOptionSet, null=True, blank=True, on_delete=models.SET_NULL)
     area = models.ForeignKey(QuestionArea, on_delete=models.PROTECT, related_name="questions")
     nist_csf = models.TextField(blank=True, null=True)
-    ref = models.TextField(blank=True, null=True)
+    reference = models.TextField(blank=True, null=True)
+    recommendation = models.TextField()
 
     def __str__(self):
         return self.text
