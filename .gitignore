@@ -1,0 +1,32 @@
+# Ignorar archivos temporales de IDEs
+.idea/
+.vscode/
+
+# Entornos virtuales
+venv/
+.venv/
+backend/venv/
+
+# Cachés y artefactos de Python/Node
+__pycache__/
+*.pyc
+.ruff_cache/
+node_modules/
+frontend/node_modules/
+frontend/dist/
+backend/staticfiles/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Variables de entorno
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# Certificados/autofirmados y salidas locales
+nginx/certs/
+backend/db.sqlite3

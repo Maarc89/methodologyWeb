@@ -1,0 +1,75 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    container_name: django_app
+    # Para desarrollo
+    # command: python manage.py runserver 0.0.0.0:8000
+    # Para producción
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+        gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --timeout 60"
+    volumes:
+      - ./backend:/app/backend
+      # En desarrollo Django gestiona los ficheros estáticos
+      - static_volume:/static/
+    working_dir: /app/backend
+      # Comentarlo para producción
+      #ports:
+    # - "8001:8000"
+    env_file:
+      - .env
+      - ./backend/.env
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/Dockerfile
+    container_name: vite_app
+    volumes:
+      - ./frontend:/app/frontend
+      - ./frontend/dist:/app/frontend/dist
+    working_dir: /app/frontend
+    # Para desarrollo
+    #command: sh -c "npm install && npm run dev -- --host"
+    # Para producción
+    command: sh -c "npm install && npm run build"
+      # Comentarlo para producción
+      #ports:
+    # - "5173:5173"
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: methodology
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - static_volume:/static
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
+      - backend
+
+
+volumes:
+  pgdata:
+  static_volume:
+  frontend_build:
