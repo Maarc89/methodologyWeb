@@ -1,5 +1,7 @@
 # PIM-PAM
 
+[![CI](https://github.com/Maarc89/methodologyWeb/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/Maarc89/methodologyWeb/actions/workflows/ci.yml)
+
 Aplicación web para crear, gestionar y analizar evaluaciones. El proyecto combina un backend en Django con un frontend en React para cubrir el ciclo completo: autenticación, administración de usuarios, trabajo con evaluaciones y visualización de resultados.
 
 ## Funcionalidades

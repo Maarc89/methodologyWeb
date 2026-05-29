@@ -141,8 +141,9 @@ const CreateAssessment = () => {
                 </div>
             )}
             <form onSubmit={handleSubmit}>
-                <label className="block mb-2 font-semibold">Título</label>
+                <label htmlFor="assessment-title" className="block mb-2 font-semibold">Título</label>
                 <input
+                    id="assessment-title"
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -150,8 +151,9 @@ const CreateAssessment = () => {
                     className="w-full mb-4 p-2 border rounded"
                 />
 
-                <label className="block mb-2 font-semibold">Descripción</label>
+                <label htmlFor="assessment-description" className="block mb-2 font-semibold">Descripción</label>
                 <textarea
+                    id="assessment-description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="w-full mb-4 p-2 border rounded"
