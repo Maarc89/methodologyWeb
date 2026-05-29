@@ -102,6 +102,12 @@ npm run dev
 - `npm test`: ejecuta la suite de tests de frontend con Vitest.
 - `npm run preview`: previsualiza la build localmente.
 
+## CI
+
+- El repositorio incluye un workflow en `.github/workflows/ci.yml`.
+- Se ejecuta en cada push y pull request contra la rama `dev`.
+- Valida tests de frontend (Vitest) y tests de backend (`python manage.py test api.tests`) con PostgreSQL como servicio.
+
 ## Estructura resumida
 
 - `backend/`: proyecto Django y API REST.
