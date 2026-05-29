@@ -12,7 +12,7 @@ const Register = ({onRegisterSuccess}) => {
 
     const handleSubmit = e => {
         e.preventDefault();
-        fetch(`${API_BASE}/api/auth/register/`, {
+        fetch(`${API_BASE}/auth/register/`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(credentials),

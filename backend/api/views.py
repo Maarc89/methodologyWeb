@@ -1,13 +1,15 @@
 import csv, codecs
 
+from django.contrib.auth.models import Group
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
 from rest_framework import generics, status, viewsets
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,7 +18,9 @@ from django.http import HttpResponse
 from collections import defaultdict
 
 from .models import *
+from .permissions import CanStartAssessment, IsBaseUser, IsEditor, IsRealmAdmin
 from .serializers import (
+    AssessmentAccessSerializer,
     AssessmentTemplateSerializer,
     UserAssessmentSerializer,
     UserAnswerSerializer,
@@ -24,6 +28,197 @@ from .serializers import (
     AnswerOptionSetSerializer,
     QuestionAreaSerializer,
 )
+
+
+# -----------------------
+# KEYCLOAK-STYLE ADMIN ENDPOINTS (Django-backed replacements)
+# -----------------------
+
+
+@api_view(['GET'])
+@permission_classes([IsRealmAdmin])
+def keycloak_roles(request):
+    """
+    Dev endpoint that returns available realm roles (maps to Django groups).
+    Returns: { roles: [..] }
+    """
+    roles = [g.name for g in Group.objects.filter(name__in=["admin", "editor", "base_user"]) ]
+    return Response({'roles': roles})
+
+
+@api_view(['POST'])
+@permission_classes([IsRealmAdmin])
+def keycloak_create_user(request):
+    """
+    Create a Django user (admin-only). Accepts same payload the frontend used for Keycloak.
+    Returns basic user info and any role assignment errors under `role_assignment_errors`.
+    """
+    data = request.data
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    enabled = data.get('enabled', True)
+    first_name = data.get('first_name', '')
+    last_name = data.get('last_name', '')
+    roles = data.get('roles', [])
+
+    if not username or not email or not password:
+        return Response({'detail': 'username, email and password required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(username=username).exists():
+        return Response({'detail': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email=email).exists():
+        return Response({'detail': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create_user(username=username, email=email, password=password,
+                                    first_name=first_name, last_name=last_name)
+    user.is_active = bool(enabled)
+    user.save()
+
+    _ensure_default_groups()
+    role_assignment_errors = []
+    for r in roles:
+        try:
+            g, _ = Group.objects.get_or_create(name=r)
+            user.groups.add(g)
+        except Exception as e:
+            role_assignment_errors.append({r: str(e)})
+
+    resp = {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+    }
+    if role_assignment_errors:
+        resp['role_assignment_errors'] = role_assignment_errors
+
+    return Response(resp, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([IsRealmAdmin])
+def keycloak_users_list(request):
+    """
+    List users. Supports simple pagination via `first` and `max`, and filters `username` or `email`.
+    Returns an array of users.
+    """
+    first = int(request.query_params.get('first') or 0)
+    maxn = int(request.query_params.get('max') or 50)
+    username = request.query_params.get('username') or request.query_params.get('user')
+    email = request.query_params.get('email')
+
+    qs = User.objects.all().order_by('id')
+    if username:
+        qs = qs.filter(username__icontains=username)
+    if email:
+        qs = qs.filter(email__icontains=email)
+
+    users = qs[first:first+maxn]
+    result = []
+    for u in users:
+        result.append({
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'firstName': u.first_name,
+            'lastName': u.last_name,
+            'enabled': u.is_active,
+        })
+    return Response(result)
+
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsRealmAdmin])
+def keycloak_user_detail(request, pk):
+    try:
+        u = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        return Response({
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'firstName': u.first_name,
+            'lastName': u.last_name,
+            'enabled': u.is_active,
+        })
+
+    if request.method == 'PATCH':
+        enabled = request.data.get('enabled')
+        if enabled is not None:
+            u.is_active = bool(enabled)
+        # allow partial update of other fields if desired
+        if 'firstName' in request.data:
+            u.first_name = request.data.get('firstName')
+        if 'lastName' in request.data:
+            u.last_name = request.data.get('lastName')
+        u.save()
+        return Response({'detail': 'User updated'})
+
+    # DELETE
+    u.delete()
+    return Response({'detail': 'User deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([IsRealmAdmin])
+def keycloak_user_roles(request, pk):
+    try:
+        u = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    realm_roles = [g.name for g in u.groups.all()]
+    return Response({'realm_roles': realm_roles, 'client_roles': {}})
+
+
+@api_view(['POST'])
+@permission_classes([IsRealmAdmin])
+def keycloak_user_assign_roles(request, pk):
+    try:
+        u = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    roles = request.data.get('roles', [])
+    _ensure_default_groups()
+    # remove known realm roles then add selected
+    all_role_names = set(g.name for g in Group.objects.filter(name__in=['admin', 'editor', 'base_user']))
+    # remove existing role groups that are in our set
+    for g in u.groups.filter(name__in=all_role_names):
+        u.groups.remove(g)
+
+    errors = []
+    for r in roles:
+        try:
+            g, _ = Group.objects.get_or_create(name=r)
+            u.groups.add(g)
+        except Exception as e:
+            errors.append({r: str(e)})
+
+    resp = {'detail': 'roles updated'}
+    if errors:
+        resp['errors'] = errors
+    return Response(resp)
+
+
+
+def _ensure_default_groups():
+    for group_name in ["admin", "editor", "base_user"]:
+        Group.objects.get_or_create(name=group_name)
+
+
+def _is_realm_admin(user):
+    return bool(
+        user
+        and getattr(user, "is_authenticated", False)
+        and (
+            getattr(user, "is_staff", False)
+            or user.groups.filter(name="admin").exists()
+        )
+    )
 
 
 # -----------------------
@@ -49,6 +244,8 @@ def register(request):
         return Response({'detail': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.create_user(username=username, email=email, password=password)
+    _ensure_default_groups()
+    user.groups.add(Group.objects.get(name='base_user'))
     token = Token.objects.create(user=user)
 
     return Response({'token': token.key}, status=status.HTTP_201_CREATED)
@@ -98,10 +295,17 @@ def update_user_settings(request):
 @permission_classes([IsAuthenticated])
 def user_me(request):
     """
-    Retorna datos de usuario para frontend (ejemplo: is_staff).
+    Retorna datos de usuario y roles locales de Django para frontend.
     """
     user = request.user
-    return Response({'is_staff': user.is_staff})
+    roles = sorted({g.name for g in user.groups.all()})
+    return Response({
+        'is_staff': user.is_staff,
+        'is_admin': user.is_staff or 'admin' in roles,
+        'is_editor': 'editor' in roles,
+        'is_base_user': 'base_user' in roles,
+        'roles': roles,
+    })
 
 
 # -----------------------
@@ -114,7 +318,7 @@ class AssessmentTemplateViewSet(viewsets.ModelViewSet):
     """
     queryset = AssessmentTemplate.objects.all()
     serializer_class = AssessmentTemplateSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsEditor]
 
 
 class AssessmentTemplateListView(generics.ListAPIView):
@@ -127,7 +331,7 @@ class AssessmentTemplateListView(generics.ListAPIView):
 
 
 @api_view(['POST', 'PUT'])
-@permission_classes([IsAdminUser])
+@permission_classes([IsEditor])
 def assessment_template_create_update(request):
     """
     Crear o actualizar una plantilla de assessment con preguntas nuevas o existentes.
@@ -154,7 +358,7 @@ def assessment_template_create_update(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAdminUser])
+@permission_classes([IsEditor])
 def import_assessment_template(request):
     """
     Importar una plantilla de assessment desde JSON externo.
@@ -172,14 +376,14 @@ class UserAssessmentListView(generics.ListAPIView):
     Lista los assessments iniciados por el usuario autenticado.
     """
     serializer_class = UserAssessmentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBaseUser]
 
     def get_queryset(self):
         return UserAssessment.objects.filter(user=self.request.user)
 
 
 class StartUserAssessmentView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanStartAssessment]
 
     def post(self, request):
         """
@@ -195,6 +399,18 @@ class StartUserAssessmentView(APIView):
             template = AssessmentTemplate.objects.get(id=assessment_template_id)
         except AssessmentTemplate.DoesNotExist:
             return Response({'detail': 'Assessment template not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not _is_realm_admin(request.user):
+            has_access = AssessmentAccess.objects.filter(
+                user=request.user,
+                assessment=template,
+                status=AssessmentAccess.STATUS_APPROVED,
+            ).exists()
+            if not has_access:
+                return Response(
+                    {'detail': 'Acceso no aprobado para este assessment. Solicítalo primero.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
         # Crear uno nuevo (sin usar get_or_create)
         user_assessment = UserAssessment.objects.create(
@@ -215,19 +431,22 @@ class StartUserAssessmentView(APIView):
 
 
 class UserAssessmentDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBaseUser]
 
     def get(self, request, pk):
         """
         Detalles de un assessment iniciado por el usuario.
         """
-        user_assessment = get_object_or_404(UserAssessment, pk=pk, user=request.user)
+        if _is_realm_admin(request.user):
+            user_assessment = get_object_or_404(UserAssessment, pk=pk)
+        else:
+            user_assessment = get_object_or_404(UserAssessment, pk=pk, user=request.user)
         serializer = UserAssessmentSerializer(user_assessment)
         return Response(serializer.data)
 
 
 class FinalizeUserAssessmentView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBaseUser]
 
     def post(self, request, pk):
         user_assessment = get_object_or_404(UserAssessment, pk=pk, user=request.user)
@@ -246,7 +465,7 @@ class UserAnswerUpdateView(generics.UpdateAPIView):
     Actualizar una respuesta de usuario a una pregunta.
     """
     serializer_class = UserAnswerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBaseUser]
 
     def get_queryset(self):
         # Solo permitir modificar respuestas propias
@@ -254,7 +473,7 @@ class UserAnswerUpdateView(generics.UpdateAPIView):
 
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsBaseUser])
 def delete_user_assessment(request, pk):
     """
     Elimina un UserAssessment propio del usuario autenticado.
@@ -270,13 +489,110 @@ class AssessmentTemplateDetailView(generics.RetrieveUpdateAPIView):
 
 
 # -----------------------
+# ACCESS REQUESTS
+# -----------------------
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def request_assessment_access(request, pk):
+    """
+    Crea o reestablece a 'pending' la solicitud de acceso del usuario autenticado
+    para el assessment con id=pk. Devuelve el estado actual.
+    """
+    try:
+        assessment = AssessmentTemplate.objects.get(pk=pk)
+    except AssessmentTemplate.DoesNotExist:
+        return Response({'detail': 'Assessment no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        access, created = AssessmentAccess.objects.get_or_create(
+            user=request.user,
+            assessment=assessment,
+            defaults={'status': AssessmentAccess.STATUS_PENDING},
+        )
+    except IntegrityError:
+        access = AssessmentAccess.objects.get(user=request.user, assessment=assessment)
+        created = False
+
+    if not created and access.status in (
+        AssessmentAccess.STATUS_DENIED,
+        AssessmentAccess.STATUS_PENDING,
+    ):
+        access.status = AssessmentAccess.STATUS_PENDING
+        access.save()
+
+    return Response({'status': access.status})
+
+
+class AssessmentAccessViewSet(viewsets.ModelViewSet):
+    queryset = AssessmentAccess.objects.select_related('user', 'assessment').all()
+    serializer_class = AssessmentAccessSerializer
+    permission_classes = [IsRealmAdmin]
+
+    def get_queryset(self):
+        qs = super().get_queryset().order_by('-created_at')
+        status_param = self.request.query_params.get('status')
+        user_id = self.request.query_params.get('user')
+        assessment_id = self.request.query_params.get('assessment')
+        if status_param:
+            qs = qs.filter(status=status_param)
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+        if assessment_id:
+            qs = qs.filter(assessment_id=assessment_id)
+        return qs
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        access = self.get_object()
+        access.status = AssessmentAccess.STATUS_APPROVED
+        access.save()
+        return Response(self.get_serializer(access).data)
+
+    @action(detail=True, methods=['post'])
+    def deny(self, request, pk=None):
+        access = self.get_object()
+        access.status = AssessmentAccess.STATUS_DENIED
+        access.save()
+        return Response(self.get_serializer(access).data)
+
+
+class AdminUserAssessmentListView(generics.ListAPIView):
+    """Lista todas las UserAssessment para administradores del realm."""
+    permission_classes = [IsRealmAdmin]
+    serializer_class = UserAssessmentSerializer
+
+    def get_queryset(self):
+        return UserAssessment.objects.all().select_related('assessment_template', 'user')
+
+
+class AdminUserAssessmentDetailView(APIView):
+    permission_classes = [IsRealmAdmin]
+
+    def get(self, request, pk):
+        ua = get_object_or_404(UserAssessment, pk=pk)
+        serializer = UserAssessmentSerializer(ua)
+        return Response(serializer.data)
+
+
+class AdminUserAssessmentDeleteView(APIView):
+    permission_classes = [IsRealmAdmin]
+
+    def delete(self, request, pk):
+        ua = get_object_or_404(UserAssessment, pk=pk)
+        ua.delete()
+        return Response({'detail': 'UserAssessment eliminado por admin.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+# -----------------------
 # QUESTIONS
 # -----------------------
 
 class QuestionListCreateView(generics.ListCreateAPIView):
     queryset = QuestionTemplate.objects.all()
     serializer_class = QuestionTemplateSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsRealmAdmin]
 
 
 # -----------------------
@@ -286,7 +602,7 @@ class QuestionListCreateView(generics.ListCreateAPIView):
 class QuestionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = QuestionTemplate.objects.all()
     serializer_class = QuestionTemplateSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsRealmAdmin]
 
 
 from collections import defaultdict
@@ -296,6 +612,7 @@ from .models import UserAssessment, AnswerOptionSet
 
 
 @api_view(['GET'])
+@permission_classes([IsRealmAdmin])
 def assessment_analysis(request, user_assessment_id):
     try:
         ua = UserAssessment.objects.get(id=user_assessment_id)
@@ -388,11 +705,13 @@ class QuestionAreaListCreateView(generics.ListCreateAPIView):
 
 
 class ExportUserAssessmentCSV(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsBaseUser]
 
     def get(self, request, assessment_id):
-        # Busca el assessment del usuario autenticado
-        user_assessment = get_object_or_404(UserAssessment, pk=assessment_id, user=request.user)
+        if _is_realm_admin(request.user):
+            user_assessment = get_object_or_404(UserAssessment, pk=assessment_id)
+        else:
+            user_assessment = get_object_or_404(UserAssessment, pk=assessment_id, user=request.user)
 
         # Prepara la respuesta CSV con encabezados adecuados
         response = HttpResponse(

@@ -7,10 +7,12 @@ router = DefaultRouter()
 # Ruta solo para admin (CRUD)
 router.register(r'assessments-admin', AssessmentTemplateViewSet, basename='assessment-template')
 router.register(r'answer-option-sets', AnswerOptionSetViewSet, basename='answer-option-set')
+router.register(r'assessment-access', AssessmentAccessViewSet, basename='assessment-access')
 
 urlpatterns = [
     # Ruta pública o para usuarios autenticados (solo listar)
     path('assessments/', AssessmentTemplateListView.as_view(), name='assessment-list'),
+    path('assessments/<int:pk>/request-access/', request_assessment_access, name='assessment-request-access'),
 
     path('', include(router.urls)),
 
@@ -30,10 +32,23 @@ urlpatterns = [
     path('user-assessments/<int:user_assessment_id>/analysis/', assessment_analysis, name='assessment-analysis'),
     path('export-user-assessment-csv/<int:assessment_id>/', ExportUserAssessmentCSV.as_view(), name='export_user_assessment_csv'),
 
+    # Admin endpoint: listar/ver/eliminar cualquier user assessment
+    path('admin/user-assessments/', AdminUserAssessmentListView.as_view(), name='admin-user-assessments'),
+    path('admin/user-assessments/<int:pk>/', AdminUserAssessmentDetailView.as_view(), name='admin-user-assessment-detail'),
+    path('admin/user-assessments/<int:pk>/delete/', AdminUserAssessmentDeleteView.as_view(), name='admin-user-assessment-delete'),
+
     # Auth
     path('auth/login/', obtain_auth_token, name='login'),
     path('auth/register/', register, name='register'),
     path('auth/user/', UserDetailView.as_view(), name='user-detail'),
     path('auth/settings/update/', update_user_settings, name='update-user-settings'),
     path('users/me/', user_me, name='user-me'),
+    # Admin user management endpoints (replaces former /keycloak/* compatibility routes)
+    # These operate on Django User/Group and provide a clean dev path under /api/admin/
+    path('admin/roles/', keycloak_roles, name='admin-roles'),
+    path('admin/create-user/', keycloak_create_user, name='admin-create-user'),
+    path('admin/users/', keycloak_users_list, name='admin-users-list'),
+    path('admin/users/<int:pk>/', keycloak_user_detail, name='admin-user-detail'),
+    path('admin/users/<int:pk>/roles/', keycloak_user_roles, name='admin-user-roles'),
+    path('admin/users/<int:pk>/assign-roles/', keycloak_user_assign_roles, name='admin-user-assign-roles'),
 ]

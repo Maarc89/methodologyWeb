@@ -75,7 +75,7 @@ const MyAssessments = () => {
                                 className="btn-delete w-10 h-10 flex items-center justify-center"
                                 onClick={() => {
                                     if (window.confirm("¿Estás seguro de que quieres borrar esta evaluación?")) {
-                                        fetch(`./api/user-assessments/${ua.id}/delete/`, {
+                                        fetch(`${API_BASE}/user-assessments/${ua.id}/delete/`, {
                                             method: 'DELETE',
                                             headers: {
                                                 Authorization: `Token ${token}`,

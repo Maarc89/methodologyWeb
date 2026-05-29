@@ -17,7 +17,7 @@ const Settings = () => {
         const fetchUser = async () => {
             const token = localStorage.getItem('token');
             try {
-                const response = await axios.get('http://localhost:8001/api/auth/user/', {
+                const response = await axios.get(`${API_BASE}/auth/user/`, {
                     headers: {Authorization: `Token ${token}`}
                 });
                 setEmail(response.data.email);
@@ -34,7 +34,7 @@ const Settings = () => {
     const handleEmailUpdate = async () => {
         const token = localStorage.getItem('token');
         try {
-            await axios.put(`${API_BASE}/api/auth/settings/update/`, {
+            await axios.put(`${API_BASE}/auth/settings/update/`, {
                 email: newEmail,
             }, {
                 headers: {Authorization: `Token ${token}`}
@@ -52,7 +52,7 @@ const Settings = () => {
         e.preventDefault();
         const token = localStorage.getItem('token');
         try {
-            await axios.put(`${API_BASE}/api/auth/settings/update/`, {
+            await axios.put(`${API_BASE}/auth/settings/update/`, {
                 password: currentPassword,
                 new_password: newPassword,
             }, {

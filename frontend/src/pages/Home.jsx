@@ -9,6 +9,7 @@ const Home = () => {
     const [assessments, setAssessments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isEditor, setIsEditor] = useState(false);
     const [names, setNames] = useState({});
     const [editingName, setEditingName] = useState({});
     const [showInfo, setShowInfo] = useState({});
@@ -16,12 +17,32 @@ const Home = () => {
     const token = localStorage.getItem('token');
 
     useEffect(() => {
-        const fetchAssessments = async () => {
+        const fetchData = async () => {
             try {
+                let adminFlag = false;
+                let editorFlag = false;
+                if (token) {
+                    const userRes = await fetch(`${API_BASE}/users/me/`, {
+                        headers: { Authorization: `Token ${token}` },
+                    });
+                    if (userRes.ok) {
+                        const user = await userRes.json();
+                        adminFlag = Boolean(user.is_staff || user.is_admin);
+                        // support both flags
+                        editorFlag = Boolean(user.is_editor || (Array.isArray(user.roles) && user.roles.includes('editor')));
+                        setIsAdmin(adminFlag);
+                        setIsEditor(editorFlag);
+                    }
+                }
+
                 const res = await fetch(`${API_BASE}/assessments/`);
                 if (!res.ok) throw new Error('Error al cargar las evaluaciones');
                 const data = await res.json();
-                const assessmentsData = data.results ?? data;
+                const assessmentsData = (data.results ?? data).map(a => ({
+                    ...a,
+                    has_access: adminFlag || a.access_status === 'approved',
+                    access_requested: ['pending','denied'].includes(a.access_status),
+                }));
                 setAssessments(assessmentsData);
             } catch (error) {
                 console.error(error);
@@ -31,23 +52,7 @@ const Home = () => {
             }
         };
 
-        const fetchUserData = async () => {
-            if (!token) return;
-            try {
-                const res = await fetch(`${API_BASE}/users/me/`, {
-                    headers: {Authorization: `Token ${token}`},
-                });
-                if (res.ok) {
-                    const user = await res.json();
-                    setIsAdmin(user.is_staff);
-                }
-            } catch (err) {
-                console.error('Error al cargar usuario:', err);
-            }
-        };
-
-        fetchAssessments();
-        fetchUserData();
+        fetchData();
     }, [token]);
 
     const handleNameChange = (id, value) => {
@@ -93,6 +98,31 @@ const Home = () => {
 
     const handleEdit = (id) => {
         navigate(`/assessments/${id}/edit`);
+    };
+
+    const requestAccess = async (id) => {
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/assessments/${id}/request-access/`, {
+                method: 'POST',
+                headers: { Authorization: `Token ${token}` },
+            });
+            if (!res.ok) throw new Error('Error al solicitar acceso');
+            const data = await res.json();
+            setAssessments(prev => prev.map(a => a.id === id ? ({
+                ...a,
+                access_status: data.status,
+                has_access: data.status === 'approved',
+                access_requested: ['pending','denied'].includes(data.status),
+            }) : a));
+            if (data.status === 'pending') alert('Solicitud de acceso enviada. Estado: pendiente');
+        } catch (err) {
+            console.error(err);
+            alert('No se pudo solicitar acceso');
+        }
     };
 
     const handleDelete = async (id) => {
@@ -177,13 +207,29 @@ const Home = () => {
                             {!editingName[a.id] ? (
                                 <>
                                     <div className="flex justify-center items-center gap-3 flex-wrap mb-3">
-                                        <button
-                                            className="btn-primary w-10 h-10 flex items-center justify-center"
-                                            onClick={() => handleStartClick(a.id)}
-                                            aria-label="Empezar"
-                                        >
-                                            <Play className="w-5 h-5"/>
-                                        </button>
+                                        {(() => {
+                                            const canStart = isAdmin || a.has_access;
+                                            const isEditorOnly = isEditor && !isAdmin;
+                                            if (isEditorOnly) {
+                                                return (
+                                                    <span className="text-sm text-gray-500">Los usuarios con rol "editor" no pueden iniciar evaluaciones.</span>
+                                                );
+                                            }
+                                            if (canStart) {
+                                                return (
+                                                    <button
+                                                        className="btn-primary w-10 h-10 flex items-center justify-center"
+                                                        onClick={() => handleStartClick(a.id)}
+                                                        aria-label="Empezar"
+                                                    >
+                                                        <Play className="w-5 h-5"/>
+                                                    </button>
+                                                );
+                                            }
+                                            return (
+                                                <button className="btn-secondary" onClick={() => requestAccess(a.id)}>Solicitar acceso</button>
+                                            );
+                                        })()}
 
                                         {isAdmin && (
                                             <>

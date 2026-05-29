@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import { API_BASE } from '../config.js';
 
 const Profile = ({onLogout}) => {
     const [userInfo, setUserInfo] = useState(null);
@@ -15,7 +16,7 @@ const Profile = ({onLogout}) => {
             return;
         }
 
-        fetch('./api/auth/user/', {
+        fetch(`${API_BASE}/auth/user/`, {
             headers: {
                 Authorization: `Token ${token}`,
             },

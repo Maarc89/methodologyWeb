@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import AssessmentAnalysis from '../functionalities/AssessmentAnalysis.jsx';
 import {downloadCSV} from "../functionalities/ExportAssessment.jsx";
+import { API_BASE } from '../config.js';
 
 const UserAssessmentDetail = () => {
     const {id} = useParams();
@@ -15,7 +16,6 @@ const UserAssessmentDetail = () => {
     const [assessmentAnalysis, setAssessmentAnalysis] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
     const token = localStorage.getItem('token');
-    const API_BASE = 'http://localhost:8001/api';
 
     useEffect(() => {
         if (!token) {
