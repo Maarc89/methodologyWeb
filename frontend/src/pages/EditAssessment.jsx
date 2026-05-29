@@ -15,6 +15,8 @@ const EditAssessment = () => {
     const [filterArea, setFilterArea] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [statusMsg, setStatusMsg] = useState({type: '', text: ''});
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [areas, setAreas] = useState([]);
     const [optionSets, setOptionSets] = useState([]);
 
@@ -88,12 +90,14 @@ const EditAssessment = () => {
         if (!selectedExistingQuestionId) return;
 
         const questionToAdd = existingQuestions.find(
-            (q) => q.id === parseInt(selectedExistingQuestionId)
+            (q) => q.id === parseInt(selectedExistingQuestionId, 10)
         );
         if (!questionToAdd) return;
 
-        if (questions.some((q) => q.id === questionToAdd.id))
-            return alert('La pregunta ya está añadida.');
+        if (questions.some((q) => q.id === questionToAdd.id)) {
+            setStatusMsg({type: 'error', text: 'La pregunta ya está añadida.'});
+            return;
+        }
 
         setQuestions((prev) => [
             ...prev,
@@ -128,6 +132,8 @@ const EditAssessment = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+        setStatusMsg({type: '', text: ''});
+        setIsSubmitting(true);
 
         const filteredQuestions = questions.filter((q) => q.text.trim() !== '');
 
@@ -142,11 +148,14 @@ const EditAssessment = () => {
 
             if (!resAssessment.ok) throw new Error('Error al actualizar assessment');
 
-            alert('Assessment actualizado correctamente');
+            setStatusMsg({type: 'success', text: 'Assessment actualizado correctamente'});
             navigate('/');
         } catch (err) {
             console.error(err);
             setError(err.message);
+            setStatusMsg({type: 'error', text: err.message || 'Error al actualizar assessment'});
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -156,6 +165,15 @@ const EditAssessment = () => {
     return (
         <div className="max-w-2xl mx-auto mt-10 p-6 border rounded shadow bg-white">
             <h1 className="text-2xl font-bold mb-4">Editar Assessment</h1>
+            {statusMsg.text && (
+                <div
+                    className={`mb-4 rounded-md px-4 py-2 text-sm ${
+                        statusMsg.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                    }`}
+                >
+                    {statusMsg.text}
+                </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Título y descripción */}
                 <div>
@@ -281,9 +299,10 @@ const EditAssessment = () => {
 
                 <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 >
-                    Guardar Cambios
+                    {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
             </form>
         </div>

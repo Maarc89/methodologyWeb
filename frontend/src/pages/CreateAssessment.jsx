@@ -8,6 +8,8 @@ const CreateAssessment = () => {
     const [description, setDescription] = useState('');
     const [questions, setQuestions] = useState([]); // preguntas existentes del backend
     const [selectedQuestions, setSelectedQuestions] = useState([]); // preguntas seleccionadas (objetos completos)
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [message, setMessage] = useState({type: '', text: ''});
 
     // Para nueva pregunta
     const [newQuestionText, setNewQuestionText] = useState('');
@@ -24,7 +26,7 @@ const CreateAssessment = () => {
                 const data = await res.json();
                 setQuestions(data.results ?? data);
             } catch (error) {
-                alert('No se pudieron cargar las preguntas');
+                setMessage({type: 'error', text: 'No se pudieron cargar las preguntas'});
             }
         };
 
@@ -35,13 +37,13 @@ const CreateAssessment = () => {
                 const data = await res.json();
                 setOptionSets(data.results ?? data);
             } catch (error) {
-                alert('No se pudieron cargar los conjuntos de opciones');
+                setMessage({type: 'error', text: 'No se pudieron cargar los conjuntos de opciones'});
             }
         };
 
         fetchQuestions();
         fetchOptionSets();
-    }, [token]);
+    }, []);
 
     // Manejar selección/deselección de preguntas existentes
     const handleCheckboxChange = (question) => {
@@ -57,8 +59,9 @@ const CreateAssessment = () => {
 
     // Añadir nueva pregunta desde el formulario pequeño
     const handleAddNewQuestion = () => {
+        setMessage({type: '', text: ''});
         if (!newQuestionText.trim() || !newQuestionArea.trim()) {
-            alert('Completa texto y área para la nueva pregunta');
+            setMessage({type: 'error', text: 'Completa texto y área para la nueva pregunta'});
             return;
         }
         // Convertir opción vacía a null para backend
@@ -77,9 +80,10 @@ const CreateAssessment = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setMessage({type: '', text: ''});
 
         if (selectedQuestions.length === 0) {
-            alert('Selecciona o añade al menos una pregunta');
+            setMessage({type: 'error', text: 'Selecciona o añade al menos una pregunta'});
             return;
         }
 
@@ -90,32 +94,52 @@ const CreateAssessment = () => {
             option_set: q.option_set ?? null,
         }));
 
-        const res = await authFetch(`${API_BASE}/assessment-templates/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                title,
-                description,
-                questions: questionsToSend,
-            }),
-        });
+        setIsSubmitting(true);
+        try {
+            const res = await authFetch(`${API_BASE}/assessment-templates/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title,
+                    description,
+                    questions: questionsToSend,
+                }),
+            });
 
-        const data = await res.json();
-        console.log(data);
+            const data = await res.json();
 
-        if (res.ok) {
-            alert('Assessment creado correctamente');
-            navigate('/');
-        } else {
-            alert('Error al crear el assessment: ' + JSON.stringify(data));
+            if (res.ok) {
+                setMessage({type: 'success', text: 'Assessment creado correctamente'});
+                navigate('/');
+                return;
+            }
+
+            setMessage({
+                type: 'error',
+                text: data.detail || 'Error al crear el assessment',
+            });
+        } catch (error) {
+            console.error(error);
+            setMessage({type: 'error', text: 'No se pudo crear el assessment'});
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
         <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-lg shadow">
             <h1 className="text-2xl font-bold mb-4">Crear nuevo Assessment</h1>
+            {message.text && (
+                <div
+                    className={`mb-4 rounded-md px-4 py-2 text-sm ${
+                        message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                    }`}
+                >
+                    {message.text}
+                </div>
+            )}
             <form onSubmit={handleSubmit}>
                 <label className="block mb-2 font-semibold">Título</label>
                 <input
@@ -173,8 +197,6 @@ const CreateAssessment = () => {
                     />
                     <label className="block mb-1 font-semibold">Conjunto de opciones</label>
 
-                    {console.log("optionSets:", optionSets)}
-
                     <select
                         value={newQuestionOptionSet}
                         onChange={(e) => setNewQuestionOptionSet(e.target.value)}
@@ -221,9 +243,10 @@ const CreateAssessment = () => {
 
                 <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 >
-                    Crear
+                    {isSubmitting ? 'Creando...' : 'Crear'}
                 </button>
             </form>
         </div>

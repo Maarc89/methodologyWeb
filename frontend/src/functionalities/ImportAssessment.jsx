@@ -4,6 +4,7 @@ import {authFetch} from '../utils/auth.js';
 
 const ImportAssessment = ({onCreated, API_BASE}) => {
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState('');
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -12,6 +13,8 @@ const ImportAssessment = ({onCreated, API_BASE}) => {
         try {
             const text = await file.text();
             const json = JSON.parse(text);
+            setError(null);
+            setSuccess('');
 
             const response = await authFetch(`${API_BASE}/assessment-templates/import/`, {
                 method: 'POST',
@@ -27,12 +30,13 @@ const ImportAssessment = ({onCreated, API_BASE}) => {
             } else {
                 const data = await response.json();
                 setError(null);
-                alert('Evaluación importada correctamente');
+                setSuccess('Evaluación importada correctamente');
                 if (onCreated) onCreated(data);
             }
         } catch (err) {
             console.error(err);
             setError('Error leyendo o parseando el archivo JSON');
+            setSuccess('');
         }
     };
 
@@ -53,6 +57,7 @@ const ImportAssessment = ({onCreated, API_BASE}) => {
                 onChange={handleFileChange}
             />
             {error && <p className="text-red-600 mt-2">{error}</p>}
+            {success && <p className="text-green-600 mt-2">{success}</p>}
         </div>
     );
 };

@@ -10,6 +10,8 @@ const Home = () => {
     const [assessments, setAssessments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({type: '', text: ''});
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isEditor, setIsEditor] = useState(false);
     const [names, setNames] = useState({});
@@ -126,7 +128,8 @@ const Home = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('¿Estás seguro de que quieres borrar esta evaluación?')) return;
+        setDeletingId(id);
+        setMessage({type: '', text: ''});
 
         const res = await authFetch(`${API_BASE}/assessments-admin/${id}/`, {
             method: 'DELETE',
@@ -145,9 +148,11 @@ const Home = () => {
                 delete copy[id];
                 return copy;
             });
+            setConfirmDeleteId(null);
         } else {
             setMessage({type: 'error', text: 'Error al borrar la evaluación'});
         }
+        setDeletingId(null);
     };
 
     const toggleInfo = (id) => {
@@ -261,7 +266,8 @@ const Home = () => {
                                             <>
                                                 <button
                                                     className="btn-delete w-10 h-10 flex items-center justify-center"
-                                                    onClick={() => handleDelete(a.id)}
+                                                    onClick={() => setConfirmDeleteId(a.id)}
+                                                    disabled={deletingId === a.id}
                                                     aria-label="Borrar"
                                                 >
                                                     <Trash2 className="w-5 h-5"/>
@@ -269,6 +275,28 @@ const Home = () => {
                                             </>
                                         )}
                                     </div>
+
+                                    {isAdmin && confirmDeleteId === a.id && (
+                                        <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                            <p className="mb-2">¿Seguro que quieres borrar esta evaluación?</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    className="btn-delete"
+                                                    onClick={() => handleDelete(a.id)}
+                                                    disabled={deletingId === a.id}
+                                                >
+                                                    {deletingId === a.id ? 'Borrando...' : 'Sí, borrar'}
+                                                </button>
+                                                <button
+                                                    className="btn-secondary"
+                                                    onClick={() => setConfirmDeleteId(null)}
+                                                    disabled={deletingId === a.id}
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Mostrar info si está activo */}
                                     <AnimatePresence initial={false}>
