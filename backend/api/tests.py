@@ -94,3 +94,96 @@ class StartUserAssessmentTests(APITestCase):
             user=self.admin_user, assessment_template=self.template
         )
         self.assertTrue(created.exists(), "UserAssessment not created for admin")
+
+
+class RequestAssessmentAccessTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="requester", password="pass")
+        self.template = AssessmentTemplate.objects.create(
+            title="Access Template", description="desc"
+        )
+        self.url = f"/api/assessments/{self.template.id}/request-access/"
+
+    def test_unauthenticated_user_cannot_request_access(self):
+        response = self.client.post(self.url, format="json")
+        self.assertEqual(response.status_code, 401)
+
+    def test_creates_pending_access_if_not_exists(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, format="json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], AssessmentAccess.STATUS_PENDING)
+
+        access = AssessmentAccess.objects.get(user=self.user, assessment=self.template)
+        self.assertEqual(access.status, AssessmentAccess.STATUS_PENDING)
+
+    def test_resets_denied_access_back_to_pending(self):
+        AssessmentAccess.objects.create(
+            user=self.user,
+            assessment=self.template,
+            status=AssessmentAccess.STATUS_DENIED,
+        )
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, format="json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], AssessmentAccess.STATUS_PENDING)
+
+        access = AssessmentAccess.objects.get(user=self.user, assessment=self.template)
+        self.assertEqual(access.status, AssessmentAccess.STATUS_PENDING)
+
+    def test_keeps_approved_access_as_approved(self):
+        AssessmentAccess.objects.create(
+            user=self.user,
+            assessment=self.template,
+            status=AssessmentAccess.STATUS_APPROVED,
+        )
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, format="json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], AssessmentAccess.STATUS_APPROVED)
+
+        access = AssessmentAccess.objects.get(user=self.user, assessment=self.template)
+        self.assertEqual(access.status, AssessmentAccess.STATUS_APPROVED)
+
+
+class UserMeEndpointTests(APITestCase):
+    def setUp(self):
+        self.editor_group, _ = Group.objects.get_or_create(name="editor")
+        self.base_group, _ = Group.objects.get_or_create(name="base_user")
+        self.admin_group, _ = Group.objects.get_or_create(name="admin")
+
+        self.user = User.objects.create_user(username="roleuser", password="pass")
+        self.url = "/api/users/me/"
+
+    def test_requires_authentication(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_returns_role_flags_for_authenticated_user(self):
+        self.user.groups.add(self.editor_group, self.base_group)
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.data["is_staff"])
+        self.assertFalse(response.data["is_admin"])
+        self.assertTrue(response.data["is_editor"])
+        self.assertTrue(response.data["is_base_user"])
+        self.assertEqual(sorted(response.data["roles"]), ["base_user", "editor"])
+
+    def test_admin_group_sets_is_admin_even_without_staff_flag(self):
+        self.user.groups.add(self.admin_group)
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.data["is_staff"])
+        self.assertTrue(response.data["is_admin"])
+        self.assertIn("admin", response.data["roles"])
