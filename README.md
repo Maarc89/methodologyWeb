@@ -99,6 +99,7 @@ npm run dev
 - `npm run dev`: arranca Vite en modo desarrollo.
 - `npm run build`: genera la compilacion de produccion.
 - `npm run lint`: ejecuta ESLint.
+- `npm test`: ejecuta la suite de tests de frontend con Vitest.
 - `npm run preview`: previsualiza la build localmente.
 
 ## Estructura resumida
