@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
 import axios from 'axios';
 import {API_BASE} from "../config.js";
+import {authAxiosConfig} from '../utils/auth.js';
 
 const Settings = () => {
     const [email, setEmail] = useState('');
@@ -15,11 +16,8 @@ const Settings = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const token = localStorage.getItem('token');
             try {
-                const response = await axios.get(`${API_BASE}/auth/user/`, {
-                    headers: {Authorization: `Token ${token}`}
-                });
+                const response = await axios.get(`${API_BASE}/auth/user/`, authAxiosConfig());
                 setEmail(response.data.email);
                 setNewEmail(response.data.email);
             } catch (err) {
@@ -32,13 +30,10 @@ const Settings = () => {
     }, []);
 
     const handleEmailUpdate = async () => {
-        const token = localStorage.getItem('token');
         try {
             await axios.put(`${API_BASE}/auth/settings/update/`, {
                 email: newEmail,
-            }, {
-                headers: {Authorization: `Token ${token}`}
-            });
+            }, authAxiosConfig());
             setEmail(newEmail);
             setEditingEmail(false);
             setMessage('Email actualizado con éxito');
@@ -50,14 +45,11 @@ const Settings = () => {
 
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
         try {
             await axios.put(`${API_BASE}/auth/settings/update/`, {
                 password: currentPassword,
                 new_password: newPassword,
-            }, {
-                headers: {Authorization: `Token ${token}`}
-            });
+            }, authAxiosConfig());
             setCurrentPassword('');
             setNewPassword('');
             setShowPasswordForm(false);

@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {API_BASE} from "../config.js";
+import {authFetch} from '../utils/auth.js';
 
 const CreateAssessment = () => {
     const [title, setTitle] = useState('');
@@ -15,14 +16,10 @@ const CreateAssessment = () => {
     const [optionSets, setOptionSets] = useState([]);
 
     const navigate = useNavigate();
-    const token = localStorage.getItem('token');
-
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
-                const res = await fetch(`${API_BASE}/questions/`, {
-                    headers: {Authorization: `Token ${token}`},
-                });
+                const res = await authFetch(`${API_BASE}/questions/`);
                 if (!res.ok) throw new Error('Error al cargar preguntas');
                 const data = await res.json();
                 setQuestions(data.results ?? data);
@@ -33,9 +30,7 @@ const CreateAssessment = () => {
 
         const fetchOptionSets = async () => {
             try {
-                const res = await fetch(`${API_BASE}/answer-option-sets/`, {
-                    headers: {Authorization: `Token ${token}`},
-                });
+                const res = await authFetch(`${API_BASE}/answer-option-sets/`);
                 if (!res.ok) throw new Error('Error al cargar option sets');
                 const data = await res.json();
                 setOptionSets(data.results ?? data);
@@ -95,11 +90,10 @@ const CreateAssessment = () => {
             option_set: q.option_set ?? null,
         }));
 
-        const res = await fetch(`${API_BASE}/assessment-templates/`, {
+        const res = await authFetch(`${API_BASE}/assessment-templates/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Token ${token}`,
             },
             body: JSON.stringify({
                 title,

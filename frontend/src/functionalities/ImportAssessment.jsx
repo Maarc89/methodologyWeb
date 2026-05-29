@@ -1,7 +1,8 @@
 // ImportAssessment.jsx
 import {useState} from "react";
+import {authFetch} from '../utils/auth.js';
 
-const ImportAssessment = ({onCreated, token, API_BASE}) => {
+const ImportAssessment = ({onCreated, API_BASE}) => {
     const [error, setError] = useState(null);
 
     const handleFileChange = async (e) => {
@@ -12,11 +13,10 @@ const ImportAssessment = ({onCreated, token, API_BASE}) => {
             const text = await file.text();
             const json = JSON.parse(text);
 
-            const response = await fetch(`${API_BASE}/assessment-templates/import/`, {
+            const response = await authFetch(`${API_BASE}/assessment-templates/import/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${token}`,
                 },
                 body: JSON.stringify(json),
             });

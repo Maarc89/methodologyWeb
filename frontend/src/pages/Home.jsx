@@ -4,6 +4,7 @@ import ImportAssessment from '../functionalities/ImportAssessment.jsx';
 import {Info, Play, Trash2, FilePenLine} from 'lucide-react';
 import {motion, AnimatePresence} from 'framer-motion';
 import {API_BASE} from "../config.js";
+import {authFetch, getAuthToken} from '../utils/auth.js';
 
 const Home = () => {
     const [assessments, setAssessments] = useState([]);
@@ -14,7 +15,7 @@ const Home = () => {
     const [editingName, setEditingName] = useState({});
     const [showInfo, setShowInfo] = useState({});
     const navigate = useNavigate();
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -22,9 +23,7 @@ const Home = () => {
                 let adminFlag = false;
                 let editorFlag = false;
                 if (token) {
-                    const userRes = await fetch(`${API_BASE}/users/me/`, {
-                        headers: { Authorization: `Token ${token}` },
-                    });
+                    const userRes = await authFetch(`${API_BASE}/users/me/`);
                     if (userRes.ok) {
                         const user = await userRes.json();
                         adminFlag = Boolean(user.is_staff || user.is_admin);
@@ -76,11 +75,10 @@ const Home = () => {
             return;
         }
 
-        const res = await fetch(`${API_BASE}/user-assessments/start/`, {
+        const res = await authFetch(`${API_BASE}/user-assessments/start/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Token ${token}`,
             },
             body: JSON.stringify({
                 assessment_template_id: id,
@@ -106,9 +104,8 @@ const Home = () => {
             return;
         }
         try {
-            const res = await fetch(`${API_BASE}/assessments/${id}/request-access/`, {
+            const res = await authFetch(`${API_BASE}/assessments/${id}/request-access/`, {
                 method: 'POST',
-                headers: { Authorization: `Token ${token}` },
             });
             if (!res.ok) throw new Error('Error al solicitar acceso');
             const data = await res.json();
@@ -128,11 +125,8 @@ const Home = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('¿Estás seguro de que quieres borrar esta evaluación?')) return;
 
-        const res = await fetch(`${API_BASE}/assessments-admin/${id}/`, {
+        const res = await authFetch(`${API_BASE}/assessments-admin/${id}/`, {
             method: 'DELETE',
-            headers: {
-                Authorization: `Token ${token}`,
-            },
         });
 
         if (res.ok) {
@@ -184,7 +178,6 @@ const Home = () => {
                             Crear Evaluación
                         </button>
                         <ImportAssessment
-                            token={token}
                             API_BASE={API_BASE}
                             onCreated={handleAssessmentImported}
                         />

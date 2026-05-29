@@ -23,7 +23,7 @@ const Register = ({onRegisterSuccess}) => {
                     onRegisterSuccess(data.token);
                     navigate('/');
                 } else {
-                    alert('Error en el registro');
+                    alert(data.detail || 'Error en el registro');
                 }
             })
             .catch(() => alert('Error en la petición de registro'));

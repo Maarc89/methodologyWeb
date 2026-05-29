@@ -3,6 +3,7 @@ import {useParams} from 'react-router-dom';
 import AssessmentAnalysis from '../functionalities/AssessmentAnalysis.jsx';
 import {downloadCSV} from "../functionalities/ExportAssessment.jsx";
 import { API_BASE } from '../config.js';
+import {authFetch, getAuthToken} from '../utils/auth.js';
 
 const UserAssessmentDetail = () => {
     const {id} = useParams();
@@ -15,7 +16,7 @@ const UserAssessmentDetail = () => {
     const [finalized, setFinalized] = useState(false);
     const [assessmentAnalysis, setAssessmentAnalysis] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
 
     useEffect(() => {
         if (!token) {
@@ -27,9 +28,7 @@ const UserAssessmentDetail = () => {
         setLoading(true);
         setErrorMsg('');
 
-        fetch(`${API_BASE}/user-assessments/${id}/`, {
-            headers: {Authorization: `Token ${token}`},
-        })
+        authFetch(`${API_BASE}/user-assessments/${id}/`)
             .then(res => {
                 if (!res.ok) throw new Error(`Error al cargar la evaluación: ${res.statusText}`);
                 return res.json();
@@ -42,9 +41,7 @@ const UserAssessmentDetail = () => {
                     setFinalized(true);
 
                     try {
-                        const resAnalysis = await fetch(`${API_BASE}/user-assessments/${id}/analysis/`, {
-                            headers: {Authorization: `Token ${token}`},
-                        });
+                        const resAnalysis = await authFetch(`${API_BASE}/user-assessments/${id}/analysis/`);
                         if (resAnalysis.ok) {
                             const analysisData = await resAnalysis.json();
                             setAssessmentAnalysis(analysisData);
@@ -84,11 +81,10 @@ const UserAssessmentDetail = () => {
         }
 
         try {
-            const res = await fetch(`${API_BASE}/user-assessments/answers/${answerId}/`, {
+            const res = await authFetch(`${API_BASE}/user-assessments/answers/${answerId}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Token ${token}`,
                 },
                 body: JSON.stringify({selected_option: newSelectedOption.id})
             });
@@ -130,11 +126,10 @@ const UserAssessmentDetail = () => {
         setFinalizing(true);
         setErrorMsg('');
         try {
-            const res = await fetch(`${API_BASE}/user-assessments/${id}/finalize/`, {
+            const res = await authFetch(`${API_BASE}/user-assessments/${id}/finalize/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Token ${token}`,
                 },
                 body: JSON.stringify({marked_for_review: markedForReview}) // aquí envías el estado
             });
@@ -143,9 +138,7 @@ const UserAssessmentDetail = () => {
 
             setFinalized(true);
 
-            const resAnalysis = await fetch(`${API_BASE}/user-assessments/${id}/analysis/`, {
-                headers: {Authorization: `Token ${token}`},
-            });
+            const resAnalysis = await authFetch(`${API_BASE}/user-assessments/${id}/analysis/`);
             if (resAnalysis.ok) {
                 const analysisData = await resAnalysis.json();
                 setAssessmentAnalysis(analysisData);

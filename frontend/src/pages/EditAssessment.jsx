@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import {API_BASE} from "../config.js";
+import {authFetch} from '../utils/auth.js';
 
 const EditAssessment = () => {
     const {id} = useParams();
@@ -22,18 +23,10 @@ const EditAssessment = () => {
             try {
                 const [resAssessment, resAreas, resOptionSets, resExistingQuestions] =
                     await Promise.all([
-                        fetch(`${API_BASE}/assessments/${id}/`, {
-                            headers: {Authorization: `Token ${localStorage.getItem('token')}`},
-                        }),
-                        fetch(`${API_BASE}/question-areas/`, {
-                            headers: {Authorization: `Token ${localStorage.getItem('token')}`},
-                        }),
-                        fetch(`${API_BASE}/answer-option-sets/`, {
-                            headers: {Authorization: `Token ${localStorage.getItem('token')}`},
-                        }),
-                        fetch(`${API_BASE}/questions/`, {
-                            headers: {Authorization: `Token ${localStorage.getItem('token')}`},
-                        }),
+                        authFetch(`${API_BASE}/assessments/${id}/`),
+                        authFetch(`${API_BASE}/question-areas/`),
+                        authFetch(`${API_BASE}/answer-option-sets/`),
+                        authFetch(`${API_BASE}/questions/`),
                     ]);
 
                 if (!resAssessment.ok || !resAreas.ok || !resOptionSets.ok || !resExistingQuestions.ok)
@@ -139,11 +132,10 @@ const EditAssessment = () => {
         const filteredQuestions = questions.filter((q) => q.text.trim() !== '');
 
         try {
-            const resAssessment = await fetch(`${API_BASE}/assessments/${id}/`, {
+            const resAssessment = await authFetch(`${API_BASE}/assessments/${id}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Token ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify({title, description, questions: filteredQuestions}),
             });

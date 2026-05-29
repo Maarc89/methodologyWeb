@@ -2,6 +2,7 @@ import {Link, useNavigate} from 'react-router-dom';
 import {useState, useRef, useEffect} from 'react';
 import eurecatLogo from '../assets/eurecat-logo.png';
 import userAvatar from '../assets/profile-icon.png';
+import {clearAuthToken} from '../utils/auth.js';
 
 
 const Header = ({isAuthenticated, onLogout}) => {
@@ -20,9 +21,9 @@ const Header = ({isAuthenticated, onLogout}) => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        clearAuthToken();
         setOpen(false);
-        onLogout()
+        onLogout();
         navigate('/login');
     };
 

@@ -12,17 +12,18 @@ import UserAssessmentDetail from './pages/UserAssessmentDetail';
 import CreateAssessment from './pages/CreateAssessment';
 import Settings from './pages/Settings';
 import EditAssessment from './pages/EditAssessment';
+import {clearAuthToken, getAuthToken, setAuthToken} from './utils/auth.js';
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+    const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAuthToken()));
 
     const handleLoginSuccess = (token) => {
-        localStorage.setItem('token', token);
+        setAuthToken(token);
         setIsAuthenticated(true);
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        clearAuthToken();
         setIsAuthenticated(false);
     };
 

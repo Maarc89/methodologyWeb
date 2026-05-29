@@ -1,9 +1,8 @@
+import {authFetch} from '../utils/auth.js';
+
 export function downloadCSV(url, filename = 'archivo.csv') {
-    fetch(url, {
+    authFetch(url, {
         method: 'GET',
-        headers: {
-            'Authorization': `Token ${localStorage.getItem('token')}`
-        }
     })
         .then(response => {
             if (!response.ok) throw new Error('Error en la respuesta del servidor');

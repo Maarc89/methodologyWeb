@@ -19,7 +19,7 @@ const Login = ({onLoginSuccess}) => {
                     onLoginSuccess(data.token);
                     navigate('/');
                 } else {
-                    alert('Inicio de sesión fallido');
+                    alert(data.detail || 'Inicio de sesión fallido');
                 }
             })
             .catch(() => alert('Error en la petición de inicio de sesión'));

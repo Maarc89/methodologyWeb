@@ -5,6 +5,7 @@ import {
     Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
 import {API_BASE} from "../config.js";
+import {authFetch} from '../utils/auth.js';
 
 const COLORS = ['#4caf50', '#ff9800', '#f44336', '#9e9e9e', '#2196f3', '#9c27b0'];
 const PIE_COLORS = ['#4caf50', '#f44336'];
@@ -77,13 +78,9 @@ const AssessmentAnalysis = ({userAssessmentId}) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        fetch(`${API_BASE}/user-assessments/${userAssessmentId}/analysis/`, {
+        authFetch(`${API_BASE}/user-assessments/${userAssessmentId}/analysis/`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Token ${token}`,
-            },
+            headers: {'Content-Type': 'application/json'},
         })
             .then(res => {
                 if (!res.ok) throw new Error('No autorizado o error al cargar datos');

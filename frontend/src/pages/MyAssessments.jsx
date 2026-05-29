@@ -3,12 +3,13 @@ import {useNavigate} from 'react-router-dom';
 import {Play, Trash2} from 'lucide-react';
 import {downloadCSV} from "../functionalities/ExportAssessment.jsx";
 import {API_BASE} from "../config.js";
+import {authFetch, getAuthToken} from '../utils/auth.js';
 
 const MyAssessments = () => {
     const [userAssessments, setUserAssessments] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
 
     useEffect(() => {
         if (!token) {
@@ -16,9 +17,7 @@ const MyAssessments = () => {
             return;
         }
 
-        fetch(`${API_BASE}/user-assessments/`, {
-            headers: {Authorization: `Token ${token}`},
-        })
+        authFetch(`${API_BASE}/user-assessments/`)
             .then((res) => res.json())
             .then((data) => {
                 setUserAssessments(data);
@@ -75,11 +74,8 @@ const MyAssessments = () => {
                                 className="btn-delete w-10 h-10 flex items-center justify-center"
                                 onClick={() => {
                                     if (window.confirm("¿Estás seguro de que quieres borrar esta evaluación?")) {
-                                        fetch(`${API_BASE}/user-assessments/${ua.id}/delete/`, {
+                                        authFetch(`${API_BASE}/user-assessments/${ua.id}/delete/`, {
                                             method: 'DELETE',
-                                            headers: {
-                                                Authorization: `Token ${token}`,
-                                            },
                                         })
                                             .then((res) => {
                                                 if (res.ok) {

@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import { API_BASE } from '../config.js';
+import {authFetch, getAuthToken} from '../utils/auth.js';
 
 const Profile = ({onLogout}) => {
     const [userInfo, setUserInfo] = useState(null);
@@ -9,18 +10,14 @@ const Profile = ({onLogout}) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         if (!token) {
             setError('No estás autenticado');
             setLoading(false);
             return;
         }
 
-        fetch(`${API_BASE}/auth/user/`, {
-            headers: {
-                Authorization: `Token ${token}`,
-            },
-        })
+        authFetch(`${API_BASE}/auth/user/`)
             .then((res) => {
                 if (!res.ok) throw new Error(`Error ${res.status}`);
                 return res.json();
