@@ -106,7 +106,7 @@ npm run dev
 
 - El repositorio incluye un workflow en `.github/workflows/ci.yml`.
 - Se ejecuta en cada push y pull request contra la rama `dev`.
-- Valida tests de frontend (Vitest) y tests de backend (`python manage.py test api.tests`) con PostgreSQL como servicio.
+- Valida lint de frontend (`npm run lint`), tests de frontend (Vitest) y checks de backend (`check`, `makemigrations --check --dry-run`, `test api.tests`) con PostgreSQL como servicio.
 
 ## Estructura resumida
 

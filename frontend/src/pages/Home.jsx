@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import ImportAssessment from '../functionalities/ImportAssessment.jsx';
 import {Info, Play, Trash2, FilePenLine} from 'lucide-react';
-import {motion, AnimatePresence} from 'framer-motion';
+import {AnimatePresence} from 'framer-motion';
 import {API_BASE} from "../config.js";
 import {authFetch, getAuthToken} from '../utils/auth.js';
 
@@ -301,19 +301,14 @@ const Home = () => {
                                     {/* Mostrar info si está activo */}
                                     <AnimatePresence initial={false}>
                                         {showInfo[a.id] && (
-                                            <motion.div
+                                            <div
                                                 key="info"
-                                                initial={{opacity: 0, scaleY: 0}}
-                                                animate={{opacity: 1, scaleY: 1}}
-                                                exit={{opacity: 0, scaleY: 0}}
-                                                transition={{duration: 0.3, ease: "easeInOut"}}
-                                                style={{originY: 0}}
                                                 className="bg-gray-100 p-4 rounded border border-gray-300 mt-2"
                                             >
                                                 <p className="mb-4 text-gray-700 whitespace-pre-wrap">
                                                     {a.description || 'Sin descripción'}
                                                 </p>
-                                            </motion.div>
+                                            </div>
                                         )}
                                     </AnimatePresence>
                                 </>

@@ -25,7 +25,7 @@ const CreateAssessment = () => {
                 if (!res.ok) throw new Error('Error al cargar preguntas');
                 const data = await res.json();
                 setQuestions(data.results ?? data);
-            } catch (error) {
+            } catch {
                 setMessage({type: 'error', text: 'No se pudieron cargar las preguntas'});
             }
         };
@@ -36,7 +36,7 @@ const CreateAssessment = () => {
                 if (!res.ok) throw new Error('Error al cargar option sets');
                 const data = await res.json();
                 setOptionSets(data.results ?? data);
-            } catch (error) {
+            } catch {
                 setMessage({type: 'error', text: 'No se pudieron cargar los conjuntos de opciones'});
             }
         };
