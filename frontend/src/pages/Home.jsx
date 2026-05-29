@@ -9,6 +9,7 @@ import {authFetch, getAuthToken} from '../utils/auth.js';
 const Home = () => {
     const [assessments, setAssessments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [message, setMessage] = useState({type: '', text: ''});
     const [isAdmin, setIsAdmin] = useState(false);
     const [isEditor, setIsEditor] = useState(false);
     const [names, setNames] = useState({});
@@ -45,7 +46,7 @@ const Home = () => {
                 setAssessments(assessmentsData);
             } catch (error) {
                 console.error(error);
-                alert('No se pudieron cargar las evaluaciones');
+                setMessage({type: 'error', text: 'No se pudieron cargar las evaluaciones'});
             } finally {
                 setLoading(false);
             }
@@ -71,7 +72,7 @@ const Home = () => {
             return;
         }
         if (!name) {
-            alert('Por favor, introduce un nombre para la evaluación');
+            setMessage({type: 'error', text: 'Por favor, introduce un nombre para la evaluación'});
             return;
         }
 
@@ -90,7 +91,7 @@ const Home = () => {
             const data = await res.json();
             navigate(`/user-assessments/${data.id}`);
         } else {
-            alert('Error al iniciar la evaluación');
+            setMessage({type: 'error', text: 'Error al iniciar la evaluación'});
         }
     };
 
@@ -115,10 +116,12 @@ const Home = () => {
                 has_access: data.status === 'approved',
                 access_requested: ['pending','denied'].includes(data.status),
             }) : a));
-            if (data.status === 'pending') alert('Solicitud de acceso enviada. Estado: pendiente');
+            if (data.status === 'pending') {
+                setMessage({type: 'success', text: 'Solicitud de acceso enviada. Estado: pendiente'});
+            }
         } catch (err) {
             console.error(err);
-            alert('No se pudo solicitar acceso');
+            setMessage({type: 'error', text: 'No se pudo solicitar acceso'});
         }
     };
 
@@ -130,7 +133,7 @@ const Home = () => {
         });
 
         if (res.ok) {
-            alert('Evaluación borrada correctamente');
+            setMessage({type: 'success', text: 'Evaluación borrada correctamente'});
             setAssessments((prev) => prev.filter((a) => a.id !== id));
             setNames((prev) => {
                 const copy = {...prev};
@@ -143,7 +146,7 @@ const Home = () => {
                 return copy;
             });
         } else {
-            alert('Error al borrar la evaluación');
+            setMessage({type: 'error', text: 'Error al borrar la evaluación'});
         }
     };
 
@@ -169,6 +172,17 @@ const Home = () => {
         <div className="container-main">
             <div className="header text-center mb-6">
                 <h1 className="text-3xl font-bold mb-4 text-gray-800">Evaluaciones</h1>
+                {message.text && (
+                    <div
+                        className={`mb-4 rounded-md px-4 py-2 text-sm ${
+                            message.type === 'error'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-green-100 text-green-700'
+                        }`}
+                    >
+                        {message.text}
+                    </div>
+                )}
                 {isAdmin && (
                     <div className="admin-actions flex justify-center items-center space-x-4 mt-4 mb-6">
                         <button
